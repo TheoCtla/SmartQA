@@ -1,0 +1,91 @@
+.audit-form {
+  margin-bottom: 2rem;
+}
+
+.audit-form h2 {
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form Section Labels */
+.form-section-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.form-section-label.simple {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--color-primary);
+}
+
+.form-section-label.ai {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.form-group input.error,
+.form-group textarea.error {
+  border-color: var(--color-error);
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-group textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.error-message {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--color-error);
+}
+
+.audit-form button {
+  width: 100%;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  padding: 1rem;
+}
