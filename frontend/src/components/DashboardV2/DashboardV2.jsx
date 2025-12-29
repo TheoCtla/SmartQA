@@ -97,6 +97,41 @@ function DashboardV2({ results }) {
 function TabSynthese({ data }) {
    const { decision, priorites = {}, resume, checklist = [] } = data;
 
+   // Fonction pour dédupliquer les items par leur résumé
+   const deduplicatePriorities = (items) => {
+      if (!items) return [];
+      const grouped = {};
+      items.forEach((item) => {
+         const key = item.resume;
+         if (!grouped[key]) {
+            grouped[key] = {
+               ...item,
+               page_urls: item.page_url ? [item.page_url] : [],
+            };
+         } else if (
+            item.page_url &&
+            !grouped[key].page_urls.includes(item.page_url)
+         ) {
+            grouped[key].page_urls.push(item.page_url);
+         }
+      });
+      return Object.values(grouped);
+   };
+
+   // Extraire le slug d'une URL pour affichage compact
+   const getSlug = (url) => {
+      try {
+         const path = new URL(url).pathname;
+         return path === "/" ? "/" : path;
+      } catch {
+         return url;
+      }
+   };
+
+   const p0Dedup = deduplicatePriorities(priorites.P0);
+   const p1Dedup = deduplicatePriorities(priorites.P1);
+   const p2Dedup = deduplicatePriorities(priorites.P2);
+
    return (
       <div className='tab-synthese'>
          <div className='synthese-resume'>
@@ -105,16 +140,18 @@ function TabSynthese({ data }) {
          </div>
 
          {/* Priorités P0 */}
-         {priorites.P0?.length > 0 && (
+         {p0Dedup.length > 0 && (
             <div className='priority-section p0'>
-               <h3>🔴 P0 - Bloqueurs ({priorites.P0.length})</h3>
+               <h3>🔴 P0 - Bloqueurs ({p0Dedup.length})</h3>
                <ul>
-                  {priorites.P0.map((item, i) => (
+                  {p0Dedup.map((item, i) => (
                      <li key={i}>
                         <span className='priority-source'>{item.source}</span>
                         <span className='priority-resume'>{item.resume}</span>
-                        {item.page_url && (
-                           <span className='priority-url'>{item.page_url}</span>
+                        {item.page_urls.length > 0 && (
+                           <span className='priority-urls'>
+                              📄 {item.page_urls.map(getSlug).join(", ")}
+                           </span>
                         )}
                      </li>
                   ))}
@@ -123,14 +160,19 @@ function TabSynthese({ data }) {
          )}
 
          {/* Priorités P1 */}
-         {priorites.P1?.length > 0 && (
+         {p1Dedup.length > 0 && (
             <div className='priority-section p1'>
-               <h3>🟠 P1 - Importants ({priorites.P1.length})</h3>
+               <h3>🟠 P1 - Importants ({p1Dedup.length})</h3>
                <ul>
-                  {priorites.P1.map((item, i) => (
+                  {p1Dedup.map((item, i) => (
                      <li key={i}>
                         <span className='priority-source'>{item.source}</span>
                         <span className='priority-resume'>{item.resume}</span>
+                        {item.page_urls.length > 0 && (
+                           <span className='priority-urls'>
+                              📄 {item.page_urls.map(getSlug).join(", ")}
+                           </span>
+                        )}
                      </li>
                   ))}
                </ul>
@@ -138,13 +180,18 @@ function TabSynthese({ data }) {
          )}
 
          {/* Priorités P2 */}
-         {priorites.P2?.length > 0 && (
+         {p2Dedup.length > 0 && (
             <div className='priority-section p2'>
-               <h3>🟢 P2 - Améliorations ({priorites.P2.length})</h3>
+               <h3>🟢 P2 - Améliorations ({p2Dedup.length})</h3>
                <ul>
-                  {priorites.P2.map((item, i) => (
+                  {p2Dedup.map((item, i) => (
                      <li key={i}>
                         <span className='priority-resume'>{item.resume}</span>
+                        {item.page_urls.length > 0 && (
+                           <span className='priority-urls'>
+                              📄 {item.page_urls.map(getSlug).join(", ")}
+                           </span>
+                        )}
                      </li>
                   ))}
                </ul>
@@ -163,9 +210,9 @@ function TabSynthese({ data }) {
             </div>
          )}
 
-         {priorites.P0?.length === 0 &&
-            priorites.P1?.length === 0 &&
-            priorites.P2?.length === 0 && (
+         {p0Dedup.length === 0 &&
+            p1Dedup.length === 0 &&
+            p2Dedup.length === 0 && (
                <div className='alert alert-success'>
                   ✅ Aucun problème détecté !
                </div>
@@ -178,6 +225,7 @@ function TabSynthese({ data }) {
 // TAB: Orthographe (Étape 1)
 // ============================================
 function TabOrthographe({ data }) {
+   // Collecter toutes les erreurs avec leurs pages
    const allErrors = data.flatMap((page) =>
       (page.orthographe || []).map((err) => ({
          ...err,
@@ -185,25 +233,79 @@ function TabOrthographe({ data }) {
       }))
    );
 
-   const allExtractions = data.map((page) => ({
-      page_url: page.page_url,
-      telephones: page.extraction?.telephones_trouves || [],
-      noms: page.extraction?.noms_trouves || [],
-      coherence: page.coherence,
-   }));
+   // Dédupliquer les erreurs par "erreur" + "correction"
+   const deduplicateErrors = (errors) => {
+      const grouped = {};
+      errors.forEach((err) => {
+         const key = `${err.erreur}|${err.correction}`;
+         if (!grouped[key]) {
+            grouped[key] = {
+               ...err,
+               page_urls: [err.page_url],
+            };
+         } else if (!grouped[key].page_urls.includes(err.page_url)) {
+            grouped[key].page_urls.push(err.page_url);
+         }
+      });
+      return Object.values(grouped);
+   };
+
+   // Dédupliquer les téléphones et noms extraits
+   const deduplicateExtractions = () => {
+      const allPhones = new Map(); // phone -> [pages]
+      const allNames = new Map(); // name -> [pages]
+
+      data.forEach((page) => {
+         const phones = page.extraction?.telephones_trouves || [];
+         const names = page.extraction?.noms_trouves || [];
+
+         phones.forEach((phone) => {
+            if (!allPhones.has(phone)) {
+               allPhones.set(phone, []);
+            }
+            if (!allPhones.get(phone).includes(page.page_url)) {
+               allPhones.get(phone).push(page.page_url);
+            }
+         });
+
+         names.forEach((name) => {
+            if (!allNames.has(name)) {
+               allNames.set(name, []);
+            }
+            if (!allNames.get(name).includes(page.page_url)) {
+               allNames.get(name).push(page.page_url);
+            }
+         });
+      });
+
+      return { phones: allPhones, names: allNames };
+   };
+
+   // Extraire le slug d'une URL
+   const getSlug = (url) => {
+      try {
+         const path = new URL(url).pathname;
+         return path === "/" ? "/" : path;
+      } catch {
+         return url;
+      }
+   };
+
+   const errorsDedup = deduplicateErrors(allErrors);
+   const { phones, names } = deduplicateExtractions();
 
    return (
       <div className='tab-orthographe'>
          {/* Erreurs d'orthographe */}
          <div className='section'>
-            <h3>Fautes d'orthographe ({allErrors.length})</h3>
-            {allErrors.length === 0 ? (
+            <h3>Fautes d'orthographe ({errorsDedup.length})</h3>
+            {errorsDedup.length === 0 ? (
                <div className='alert alert-success'>
                   ✅ Aucune faute détectée
                </div>
             ) : (
                <div className='errors-list'>
-                  {allErrors.map((err, i) => (
+                  {errorsDedup.map((err, i) => (
                      <div key={i} className={`error-item ${err.gravite}`}>
                         <div className='error-header'>
                            <span className='error-word'>« {err.erreur} »</span>
@@ -218,51 +320,58 @@ function TabOrthographe({ data }) {
                         {err.contexte && (
                            <p className='error-context'>{err.contexte}</p>
                         )}
-                        <p className='error-page'>{err.page_url}</p>
+                        <div className='error-pages'>
+                           📄 {err.page_urls.map(getSlug).join(", ")}
+                        </div>
                      </div>
                   ))}
                </div>
             )}
          </div>
 
-         {/* Extractions */}
+         {/* Extractions dédupliquées */}
          <div className='section'>
             <h3>Informations extraites</h3>
-            <div className='extractions-grid'>
-               {allExtractions
-                  .filter((e) => e.telephones.length > 0 || e.noms.length > 0)
-                  .map((ext, i) => (
-                     <div key={i} className='extraction-card'>
-                        <p className='extraction-page'>{ext.page_url}</p>
-                        {ext.telephones.length > 0 && (
-                           <p>📞 {ext.telephones.join(", ")}</p>
-                        )}
-                        {ext.noms.length > 0 && <p>👤 {ext.noms.join(", ")}</p>}
-                        {ext.coherence && (
-                           <div className='coherence-status'>
-                              <span
-                                 className={
-                                    ext.coherence.telephone_statut === "ok"
-                                       ? "ok"
-                                       : "warning"
-                                 }
-                              >
-                                 Tél: {ext.coherence.telephone_statut}
-                              </span>
-                              <span
-                                 className={
-                                    ext.coherence.nom_statut === "ok"
-                                       ? "ok"
-                                       : "warning"
-                                 }
-                              >
-                                 Nom: {ext.coherence.nom_statut}
-                              </span>
-                           </div>
+
+            {phones.size === 0 && names.size === 0 ? (
+               <p className='no-extractions'>Aucune information extraite</p>
+            ) : (
+               <div className='extractions-dedup'>
+                  {/* Téléphones */}
+                  {phones.size > 0 && (
+                     <div className='extraction-group'>
+                        <h4>📞 Téléphones ({phones.size})</h4>
+                        {Array.from(phones.entries()).map(
+                           ([phone, pages], i) => (
+                              <div key={i} className='extraction-item'>
+                                 <span className='extraction-value'>
+                                    {phone}
+                                 </span>
+                                 <span className='extraction-pages'>
+                                    📄 {pages.map(getSlug).join(", ")}
+                                 </span>
+                              </div>
+                           )
                         )}
                      </div>
-                  ))}
-            </div>
+                  )}
+
+                  {/* Noms */}
+                  {names.size > 0 && (
+                     <div className='extraction-group'>
+                        <h4>👤 Noms/Responsables ({names.size})</h4>
+                        {Array.from(names.entries()).map(([name, pages], i) => (
+                           <div key={i} className='extraction-item'>
+                              <span className='extraction-value'>{name}</span>
+                              <span className='extraction-pages'>
+                                 📄 {pages.map(getSlug).join(", ")}
+                              </span>
+                           </div>
+                        ))}
+                     </div>
+                  )}
+               </div>
+            )}
          </div>
       </div>
    );
@@ -272,6 +381,24 @@ function TabOrthographe({ data }) {
 // TAB: Pages légales (Étape 2)
 // ============================================
 function TabLegal({ data }) {
+   // Traduire les types de pages légales
+   const translateLegalType = (type) => {
+      const translations = {
+         legal: "Mentions légales",
+         Legal: "Mentions légales",
+         mentions_legales: "Mentions légales",
+         "mentions-legales": "Mentions légales",
+         privacy: "Politique de confidentialité",
+         Privacy: "Politique de confidentialité",
+         politique_confidentialite: "Politique de confidentialité",
+         "politique-de-confidentialite": "Politique de confidentialité",
+         cgv: "CGV",
+         cgu: "CGU",
+         cookies: "Politique des cookies",
+      };
+      return translations[type] || type;
+   };
+
    if (data.length === 0) {
       return (
          <div className='alert alert-success'>
@@ -294,7 +421,9 @@ function TabLegal({ data }) {
                      {page.conforme ? "✅" : "⚠️"}
                   </span>
                   <div>
-                     <p className='legal-type'>{page.type_page_legale}</p>
+                     <p className='legal-type'>
+                        {translateLegalType(page.type_page_legale)}
+                     </p>
                      <p className='legal-url'>{page.page_url}</p>
                   </div>
                </div>
@@ -348,11 +477,22 @@ function TabCoherence({ data }) {
                                  key={j}
                                  className={`issue-item ${issue.gravite}`}
                               >
-                                 <span className='issue-type'>
-                                    {issue.type}
+                                 <span className={`issue-type ${issue.type}`}>
+                                    {issue.type === "promo_date_ambigue"
+                                       ? "📅 date ambiguë"
+                                       : issue.type}
                                  </span>
                                  <p>« {issue.texte} »</p>
                                  <p className='issue-raison'>{issue.raison}</p>
+                                 {issue.promo && (
+                                    <p className='issue-promo-detail'>
+                                       📅 Date trouvée : "
+                                       {issue.promo.date_fin_texte}"
+                                       {issue.promo.annee_presente
+                                          ? ` (année explicite: ${issue.promo.date_fin_interpretee})`
+                                          : " (année non précisée → vérifier manuellement)"}
+                                    </p>
+                                 )}
                               </div>
                            ))}
                         </div>
@@ -404,19 +544,58 @@ function TabCoherence({ data }) {
 // TAB: Liens (Étape 4)
 // ============================================
 function TabLiens({ data }) {
+   // Collecter tous les liens avec leurs pages sources
    const allLiens = data.flatMap((page) =>
       (page.liens || []).map((l) => ({ ...l, source_page: page.page_url }))
    );
 
-   const suspects = allLiens.filter((l) => l.statut === "suspect");
-   const aVerifier = allLiens.filter((l) => l.statut === "a_verifier");
+   // Fonction pour dédupliquer les liens par URL
+   const deduplicateLinks = (liens) => {
+      const grouped = {};
+      liens.forEach((lien) => {
+         const key = lien.url;
+         if (!grouped[key]) {
+            grouped[key] = {
+               ...lien,
+               source_pages: [lien.source_page],
+            };
+         } else {
+            if (!grouped[key].source_pages.includes(lien.source_page)) {
+               grouped[key].source_pages.push(lien.source_page);
+            }
+         }
+      });
+      return Object.values(grouped);
+   };
+
+   // Extraire le slug d'une URL pour affichage compact
+   const getSlug = (url) => {
+      try {
+         const path = new URL(url).pathname;
+         return path === "/" ? "/" : path;
+      } catch {
+         return url;
+      }
+   };
+
+   const suspects = deduplicateLinks(
+      allLiens.filter((l) => l.statut === "suspect")
+   );
+   const aVerifier = deduplicateLinks(
+      allLiens.filter((l) => l.statut === "a_verifier")
+   );
    const valides = allLiens.filter((l) => l.statut === "valide");
+
+   // Compter les liens uniques
+   const totalUnique = new Set(allLiens.map((l) => l.url)).size;
 
    return (
       <div className='tab-liens'>
          {/* Résumé */}
          <div className='liens-summary'>
-            <div className='summary-item total'>{allLiens.length} liens</div>
+            <div className='summary-item total'>
+               {totalUnique} liens uniques
+            </div>
             <div className='summary-item valide'>{valides.length} valides</div>
             <div className='summary-item suspect'>
                {suspects.length} suspects
@@ -434,7 +613,7 @@ function TabLiens({ data }) {
                   {suspects.map((lien, i) => (
                      <div key={i} className='lien-item suspect'>
                         <div className='lien-header'>
-                           <span className='lien-type'>{lien.type}</span>
+                           <span className='lien-type'> {lien.type}</span>
                            <a
                               href={lien.url}
                               target='_blank'
@@ -450,7 +629,10 @@ function TabLiens({ data }) {
                            <p className='lien-texte'>"{lien.texte}"</p>
                         )}
                         <p className='lien-raison'>{lien.raison}</p>
-                        <p className='lien-source'>📄 {lien.source_page}</p>
+                        <div className='lien-sources'>
+                           📄 Présent sur :{" "}
+                           {lien.source_pages.map(getSlug).join(", ")}
+                        </div>
                      </div>
                   ))}
                </div>
@@ -464,7 +646,7 @@ function TabLiens({ data }) {
                <div className='liens-list'>
                   {aVerifier.map((lien, i) => (
                      <div key={i} className='lien-item averifier'>
-                        <span className='lien-type'>{lien.type}</span>
+                        <span className='lien-type'> {lien.type}</span>
                         <a
                            href={lien.url}
                            target='_blank'
@@ -475,6 +657,10 @@ function TabLiens({ data }) {
                         {lien.raison && (
                            <p className='lien-raison'>{lien.raison}</p>
                         )}
+                        <div className='lien-sources'>
+                           📄 Présent sur :{" "}
+                           {lien.source_pages.map(getSlug).join(", ")}
+                        </div>
                      </div>
                   ))}
                </div>

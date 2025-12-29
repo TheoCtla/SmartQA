@@ -194,6 +194,16 @@
   width: 100%;
 }
 
+.priority-urls {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  width: 100%;
+  padding: 0.5rem;
+  background: rgba(100, 116, 139, 0.1);
+  border-radius: 4px;
+  margin-top: 0.25rem;
+}
+
 .checklist-section {
   background: rgba(100, 116, 139, 0.1);
   padding: 1rem;
@@ -320,6 +330,51 @@
   color: #f59e0b;
 }
 
+/* Deduplicated extractions */
+.error-pages {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(100, 116, 139, 0.1);
+  border-radius: 4px;
+}
+
+.no-extractions {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.extractions-dedup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.extraction-group h4 {
+  margin-bottom: 0.75rem;
+}
+
+.extraction-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.extraction-value {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.extraction-pages {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
 /* Legal Tab */
 .legal-card {
   border: 1px solid var(--color-border);
@@ -397,6 +452,26 @@
   color: #8b5cf6;
 }
 
+.issue-type.promo_expiree {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.issue-type.promo_date_ambigue {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.issue-type.hors_sujet {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.issue-type.contradiction {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
 .issue-text {
   font-style: italic;
   margin-bottom: 0.25rem;
@@ -406,6 +481,15 @@
 .issue-raison {
   font-size: 0.85rem;
   color: var(--color-text-muted);
+}
+
+.issue-promo-detail {
+  font-size: 0.8rem;
+  color: #3b82f6;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 4px;
 }
 
 /* Coherence Tab */
@@ -541,7 +625,7 @@
 }
 
 .lien-type {
-  background: rgba(99, 102, 241, 0.2);
+  background: #FFFFFF;
   color: var(--color-primary);
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
@@ -566,10 +650,13 @@
   font-size: 0.9rem;
 }
 
-.lien-source {
+.lien-sources {
   font-size: 0.8rem;
   color: var(--color-text-muted);
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(100, 116, 139, 0.1);
+  border-radius: 4px;
 }
 
 /* SEO Tab */

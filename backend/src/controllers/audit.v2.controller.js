@@ -38,7 +38,7 @@ async function handleAuditV2(req, res) {
         }
 
         console.log(`\n${"=".repeat(60)}`);
-        console.log(`🚀 Démarrage de l'audit V2 pour: ${url}`);
+        console.log(`Démarrage de l'audit V2 pour: ${url}`);
         console.log(`${"=".repeat(60)}`);
 
         const userContext = {
@@ -56,11 +56,11 @@ async function handleAuditV2(req, res) {
             details: details || null
         };
 
-        console.log("\n📥 Phase 1: Scraping du site...");
+        console.log("\nPhase 1: Scraping du site...");
         const scrapedData = await scrapeWebsiteV2(url, max_pages);
         console.log(`   ✓ ${scrapedData.pages_count} pages scrapées`);
 
-        console.log("\n🤖 Phase 2: Analyse IA complète (6 étapes)");
+        console.log("\nPhase 2: Analyse IA complète (6 étapes)");
         const analysisResults = await runFullAnalysisV2(scrapedData, userContext);
 
         const result = {

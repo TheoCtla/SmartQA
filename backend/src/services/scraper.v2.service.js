@@ -64,6 +64,23 @@ function extractPageContentV2(html, pageUrl, baseHostname) {
         // Ignorer les ancres vides
         if (href === "#" || href === "") return;
 
+        // Ignorer les liens cachés (display:none, visibility:hidden, hidden attribute)
+        const style = $el.attr("style") || "";
+        const isHiddenStyle = style.includes("display:none") ||
+            style.includes("display: none") ||
+            style.includes("visibility:hidden") ||
+            style.includes("visibility: hidden");
+        const hasHiddenAttr = $el.attr("hidden") !== undefined;
+
+        // Vérifier aussi les parents cachés (premier niveau seulement pour performance)
+        const parentStyle = $el.parent().attr("style") || "";
+        const isParentHidden = parentStyle.includes("display:none") ||
+            parentStyle.includes("display: none") ||
+            parentStyle.includes("visibility:hidden") ||
+            parentStyle.includes("visibility: hidden");
+
+        if (isHiddenStyle || hasHiddenAttr || isParentHidden) return;
+
         const texte = $el.text().trim() || $el.attr("title") || "";
         const type = classifyLinkType(href, baseHostname);
         const foundIn = detectLinkZone($el, $);

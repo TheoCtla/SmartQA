@@ -8,7 +8,7 @@
 // ============================================
 
 function getCommonPrefix() {
-    return `RÈGLES GÉNÉRALES (obligatoires) :
+  return `RÈGLES GÉNÉRALES (obligatoires) :
 1. Analyse uniquement les données fournies dans ce message.
 2. Ne jamais inventer : si une information n'est pas explicitement présente, retourne null ou "a_verifier".
 3. Chaque problème doit inclure un extrait exact ("texte") présent dans les données.
@@ -23,17 +23,17 @@ function getCommonPrefix() {
 // ============================================
 
 function getStep1Prompt({
-    currentDateISO,
-    entrepriseNom,
-    activite,
-    telephoneAttendu,
-    gerantAttendu,
-    pageUrl,
-    pageType,
-    texteAnalyse,
-    telLinks
+  currentDateISO,
+  entrepriseNom,
+  activite,
+  telephoneAttendu,
+  gerantAttendu,
+  pageUrl,
+  pageType,
+  texteAnalyse,
+  telLinks
 }) {
-    return `${getCommonPrefix()}DATE DE RÉFÉRENCE : ${currentDateISO}
+  return `${getCommonPrefix()}DATE DE RÉFÉRENCE : ${currentDateISO}
 
 CONTEXTE GLOBAL :
 - entreprise_attendue : ${entrepriseNom}
@@ -64,6 +64,12 @@ RÈGLES :
 - Nom : extraire le nom du propriétaire/gérant/responsable (sans titres : Monsieur/Madame/M./Mme/Mr/Mrs).
 - Cohérence : "ok" si identique, "different" si différent, "non_trouve" si non trouvé, "non_verifiable" si attendu = null
 
+EXCLUSIONS IMPORTANTES (ne pas extraire) :
+- IGNORER les noms et téléphones trouvés dans les sections d'avis/témoignages clients.
+- Ces sections peuvent s'appeler : "Avis", "Témoignages", "Reviews", "Nos clients témoignent", "Ce que disent nos clients", "Avis clients", "Témoignages clients", "Ils nous font confiance", ou tout contexte similaire suggérant des retours de clients.
+- Les noms de clients qui laissent des avis ne doivent PAS être inclus dans noms_trouves.
+- Seuls les noms et téléphones du gérant/propriétaire/responsable de l'entreprise doivent être extraits.
+
 RÉPONDS EN JSON :
 {
   "page_url": "${pageUrl}",
@@ -91,19 +97,19 @@ Si aucune faute : orthographe = [].`;
 // ============================================
 
 function getStep2Prompt({
-    currentDateISO,
-    entrepriseNom,
-    activite,
-    gerantAttendu,
-    telephoneAttendu,
-    adresseAttendue,
-    siretAttendu,
-    emailAttendu,
-    pageUrl,
-    legalType,
-    texteAnalyse
+  currentDateISO,
+  entrepriseNom,
+  activite,
+  gerantAttendu,
+  telephoneAttendu,
+  adresseAttendue,
+  siretAttendu,
+  emailAttendu,
+  pageUrl,
+  legalType,
+  texteAnalyse
 }) {
-    return `${getCommonPrefix()}DATE DE RÉFÉRENCE : ${currentDateISO}
+  return `${getCommonPrefix()}DATE DE RÉFÉRENCE : ${currentDateISO}
 
 CONTEXTE GLOBAL :
 - entreprise_attendue : ${entrepriseNom}
@@ -151,17 +157,17 @@ Si aucune anomalie : {"conforme": true, "issues": []}`;
 // ============================================
 
 function getStep3Prompt({
-    currentDateISO,
-    entrepriseNom,
-    activite,
-    detailsContext,
-    pageUrl,
-    isHomePage,
-    theme,
-    pageContext,
-    texteAnalyse
+  currentDateISO,
+  entrepriseNom,
+  activite,
+  detailsContext,
+  pageUrl,
+  isHomePage,
+  theme,
+  pageContext,
+  texteAnalyse
 }) {
-    return `${getCommonPrefix()}DATE DE RÉFÉRENCE : ${currentDateISO}
+  return `${getCommonPrefix()}DATE DE RÉFÉRENCE : ${currentDateISO}
 
 CONTEXTE GLOBAL :
 - entreprise : "${entrepriseNom}"
@@ -181,27 +187,56 @@ ${texteAnalyse}
 
 MISSION :
 1. Vérifier la cohérence globale du contenu avec l'entreprise et l'activité
-2. Détecter : hors-sujet, copier-coller, villes/entreprises suspectes, contradictions, promos expirées
-3. QA Copywriting : formulations floues/faibles, promesses vagues, CTA incohérents
+2. Détecter : hors-sujet, copier-coller, villes/entreprises suspectes, contradictions
+3. Détecter les promos avec dates (voir RÈGLES PROMOS ci-dessous)
+4. QA Copywriting : formulations floues/faibles, promesses vagues, CTA incohérents
 
 RÈGLES HEADER/FOOTER :
 - Le header/footer font partie de l'analyse
 - MAIS la navigation (liste de pages) n'est PAS une incohérence
 - Les infos concrètes (offre, ville, téléphone, CTA) peuvent être signalées si incohérentes
 
+RÈGLES PROMOS ET DATES (TRÈS IMPORTANT) :
+- Si une promo mentionne une date de fin AVEC ANNÉE EXPLICITE (ex: "31 décembre 2024", "15/01/2025") :
+  → Comparer à la date de référence (${currentDateISO})
+  → Si dépassée : type = "promo_expiree", gravité = "importante"
+  → Si pas dépassée : pas de problème
+  
+- Si une promo mentionne une date de fin SANS ANNÉE (ex: "jusqu'au 31 décembre", "valable jusqu'au 15 janvier") :
+  → NE JAMAIS utiliser "promo_expiree" (l'année est inconnue)
+  → Utiliser type = "promo_date_ambigue"
+  → Comparer jour/mois à la date de référence en supposant l'année courante :
+    - Si la date n'est pas encore passée cette année : gravité = "mineure" (probablement OK)
+    - Si la date est passée cette année : gravité = "importante" (probablement expirée, à vérifier)
+  → Ajouter un champ "promo" avec les détails
+
 RÉPONDS EN JSON :
 {
   "page_url": "${pageUrl}",
   "coherent": true,
   "issues": [
-    {"texte": "", "raison": "", "type": "hors_sujet|copier_coller|contradiction|promo_expiree|suspicion", "gravite": "mineure|importante"}
+    {
+      "texte": "",
+      "raison": "",
+      "type": "hors_sujet|copier_coller|contradiction|promo_expiree|promo_date_ambigue|suspicion",
+      "gravite": "mineure|importante",
+      "promo": {
+        "date_fin_texte": "31 décembre",
+        "annee_presente": false,
+        "date_fin_interpretee": "2025-12-31"
+      }
+    }
   ],
   "copywriting_issues": [
     {"texte": "", "raison": "", "suggestion": ""}
   ]
 }
 
-Si coherent : issues = []. copywriting_issues peut être [] indépendamment.`;
+NOTES :
+- Le champ "promo" est optionnel, uniquement pour les types promo_expiree et promo_date_ambigue
+- Si coherent : issues = []. copywriting_issues peut être [] indépendamment.
+- Exemple : "Jusqu'au 31 décembre" avec currentDateISO=2025-12-29 → promo_date_ambigue, mineure (pas encore passé)
+- Exemple : "Jusqu'au 15 novembre" avec currentDateISO=2025-12-29 → promo_date_ambigue, importante (déjà passé cette année)`;
 }
 
 // ============================================
@@ -209,15 +244,15 @@ Si coherent : issues = []. copywriting_issues peut être [] indépendamment.`;
 // ============================================
 
 function getStep4Prompt({
-    entrepriseNom,
-    activite,
-    villeAttendue,
-    domainesAttendus,
-    telephoneAttendu,
-    pageUrl,
-    liensJSON
+  entrepriseNom,
+  activite,
+  villeAttendue,
+  domainesAttendus,
+  telephoneAttendu,
+  pageUrl,
+  liensJSON
 }) {
-    return `${getCommonPrefix()}CONTEXTE :
+  return `${getCommonPrefix()}CONTEXTE :
 - entreprise : "${entrepriseNom}"
 - activite : "${activite}"
 - ville_attendue : ${villeAttendue || "null"}
@@ -234,7 +269,7 @@ MISSION :
 Évaluer chaque lien et signaler les liens suspects.
 
 RÈGLES :
-- Les liens tarmaac.io sont toujours valides
+- Les liens tarmaac.io & tb-dconsulting.com sont toujours valides
 - statut = "valide" si cohérent et attendu
 - statut = "suspect" si semble incohérent (autre entreprise, autre ville, domaine étrange, tel différent)
 - statut = "a_verifier" si impossible de juger avec les infos fournies
@@ -265,11 +300,11 @@ Note : Ne modifie jamais les URL.`;
 // ============================================
 
 function getStep5Prompt({
-    entrepriseNom,
-    activite,
-    metasJSON
+  entrepriseNom,
+  activite,
+  metasJSON
 }) {
-    return `${getCommonPrefix()}CONTEXTE GLOBAL :
+  return `${getCommonPrefix()}CONTEXTE GLOBAL :
 - entreprise : "${entrepriseNom}"
 - activite : "${activite}"
 
@@ -314,17 +349,17 @@ RÉPONDS EN JSON :
 // ============================================
 
 function getStep6Prompt({
-    entrepriseNom,
-    activite,
-    baseUrl,
-    currentDateISO,
-    resultEtape1JSON,
-    resultEtape2JSON,
-    resultEtape3JSON,
-    resultEtape4JSON,
-    resultEtape5JSON
+  entrepriseNom,
+  activite,
+  baseUrl,
+  currentDateISO,
+  resultEtape1JSON,
+  resultEtape2JSON,
+  resultEtape3JSON,
+  resultEtape4JSON,
+  resultEtape5JSON
 }) {
-    return `${getCommonPrefix()}CONTEXTE GLOBAL :
+  return `${getCommonPrefix()}CONTEXTE GLOBAL :
 - entreprise : "${entrepriseNom}"
 - activite : "${activite}"
 - url_auditee : "${baseUrl}"
@@ -368,11 +403,11 @@ RÉPONDS EN JSON :
 }
 
 module.exports = {
-    getCommonPrefix,
-    getStep1Prompt,
-    getStep2Prompt,
-    getStep3Prompt,
-    getStep4Prompt,
-    getStep5Prompt,
-    getStep6Prompt
+  getCommonPrefix,
+  getStep1Prompt,
+  getStep2Prompt,
+  getStep3Prompt,
+  getStep4Prompt,
+  getStep5Prompt,
+  getStep6Prompt
 };
