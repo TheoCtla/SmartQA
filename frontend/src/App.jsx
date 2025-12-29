@@ -3,7 +3,7 @@ import axios from "axios";
 import "./index.css";
 import AuditFormV2 from "./components/AuditForm/AuditFormV2";
 import Loading from "./components/Loading/Loading";
-// import DashboardV2 from "./components/DashboardV2/DashboardV2"; // À venir
+import DashboardV2 from "./components/DashboardV2/DashboardV2";
 
 const API_URL = "http://localhost:3001";
 
@@ -67,33 +67,7 @@ function App() {
 
             {results && (
                <>
-                  {/* Dashboard V2 temporaire - affiche les résultats bruts */}
-                  <div className='card results-preview'>
-                     <h2>✅ Audit terminé !</h2>
-                     <div className='result-summary'>
-                        <p>
-                           <strong>Décision :</strong>{" "}
-                           <span
-                              className={`decision-badge ${results.etape6_synthese?.decision}`}
-                           >
-                              {results.etape6_synthese?.decision || "N/A"}
-                           </span>
-                        </p>
-                        <p>
-                           <strong>Pages analysées :</strong>{" "}
-                           {results.meta?.pages_analysees}
-                        </p>
-                        <p>
-                           <strong>Résumé :</strong>{" "}
-                           {results.etape6_synthese?.resume || "Aucun résumé"}
-                        </p>
-                     </div>
-
-                     <details className='raw-results'>
-                        <summary>Voir les résultats bruts (JSON)</summary>
-                        <pre>{JSON.stringify(results, null, 2)}</pre>
-                     </details>
-                  </div>
+                  <DashboardV2 results={results} />
 
                   <div className='audit-actions'>
                      <button
