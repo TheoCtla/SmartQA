@@ -48,7 +48,7 @@ function Dashboard({ results, formData }) {
             {!collapsedSections.alertes &&
                (orthographe.length === 0 ? (
                   <div className='alert alert-success'>
-                     ✅ Aucune erreur orthographique ou grammaticale détectée
+                     Aucune erreur orthographique ou grammaticale détectée
                   </div>
                ) : (
                   <>
@@ -266,7 +266,7 @@ function Dashboard({ results, formData }) {
                                        (p) => p.coherent
                                     ).length
                                  }{" "}
-                                 page(s) sans problème
+                                 page(s) cohérentes
                               </summary>
                               {results.pagesCoherence
                                  .filter((page) => page.coherent)
