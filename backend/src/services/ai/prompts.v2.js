@@ -269,7 +269,7 @@ MISSION :
 Évaluer chaque lien et signaler les liens suspects.
 
 RÈGLES :
-- Les liens tarmaac.io & tb-dconsulting.com sont toujours valides
+- Les liens tarmaac.io sont toujours valides
 - statut = "valide" si cohérent et attendu
 - statut = "suspect" si semble incohérent (autre entreprise, autre ville, domaine étrange, tel différent)
 - statut = "a_verifier" si impossible de juger avec les infos fournies

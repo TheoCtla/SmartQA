@@ -787,11 +787,22 @@ function TabSeo({ data }) {
                <summary>
                   ✅ {metasValides.length} page(s) avec metas valides
                </summary>
-               <ul>
+               <div className='metas-valides-list'>
                   {metasValides.map((meta, i) => (
-                     <li key={i}>{meta.url}</li>
+                     <div key={i} className='meta-valide-item'>
+                        <p className='meta-valide-url'>{meta.url}</p>
+                        <div className='meta-valide-details'>
+                           <p>
+                              <strong>Title:</strong> {meta.title || "(vide)"}
+                           </p>
+                           <p>
+                              <strong>Description:</strong>{" "}
+                              {meta.description || "(vide)"}
+                           </p>
+                        </div>
+                     </div>
                   ))}
-               </ul>
+               </div>
             </details>
          )}
       </div>
