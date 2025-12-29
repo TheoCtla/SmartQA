@@ -1,9 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import "./index.css";
-import AuditForm from "./components/AuditForm/AuditForm";
+import AuditFormV2 from "./components/AuditForm/AuditFormV2";
 import Loading from "./components/Loading/Loading";
-import Dashboard from "./components/Dashboard/Dashboard";
+// import DashboardV2 from "./components/DashboardV2/DashboardV2"; // À venir
 
 const API_URL = "http://localhost:3001";
 
@@ -20,8 +20,10 @@ function App() {
       setFormData(data);
 
       try {
-         const response = await axios.post(`${API_URL}/audit`, data);
+         // Appel à l'API V2
+         const response = await axios.post(`${API_URL}/audit/v2`, data);
          setResults(response.data);
+         console.log("Résultats V2:", response.data);
       } catch (err) {
          const errorMessage =
             err.response?.data?.error ||
@@ -41,13 +43,15 @@ function App() {
    return (
       <div className='app'>
          <header className='app-header'>
-            <h1>SmartQA</h1>
-            <p>Audit intelligent de sites Webflow</p>
+            <h1>
+               SmartQA <span className='version-badge'>V2</span>
+            </h1>
+            <p>Audit intelligent de sites Webflow - Pipeline 6 étapes</p>
          </header>
 
          <main>
             {!results && !loading && (
-               <AuditForm onSubmit={handleSubmit} isLoading={loading} />
+               <AuditFormV2 onSubmit={handleSubmit} isLoading={loading} />
             )}
 
             {loading && <Loading />}
@@ -63,7 +67,34 @@ function App() {
 
             {results && (
                <>
-                  <Dashboard results={results} formData={formData} />
+                  {/* Dashboard V2 temporaire - affiche les résultats bruts */}
+                  <div className='card results-preview'>
+                     <h2>✅ Audit terminé !</h2>
+                     <div className='result-summary'>
+                        <p>
+                           <strong>Décision :</strong>{" "}
+                           <span
+                              className={`decision-badge ${results.etape6_synthese?.decision}`}
+                           >
+                              {results.etape6_synthese?.decision || "N/A"}
+                           </span>
+                        </p>
+                        <p>
+                           <strong>Pages analysées :</strong>{" "}
+                           {results.meta?.pages_analysees}
+                        </p>
+                        <p>
+                           <strong>Résumé :</strong>{" "}
+                           {results.etape6_synthese?.resume || "Aucun résumé"}
+                        </p>
+                     </div>
+
+                     <details className='raw-results'>
+                        <summary>Voir les résultats bruts (JSON)</summary>
+                        <pre>{JSON.stringify(results, null, 2)}</pre>
+                     </details>
+                  </div>
+
                   <div className='audit-actions'>
                      <button
                         onClick={() => handleSubmit(formData)}
