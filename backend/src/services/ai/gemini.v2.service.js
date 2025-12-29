@@ -240,12 +240,14 @@ async function runFullAnalysisV2(scrapedData, userContext) {
         console.log("   → Étape 1: Orthographe + Extraction...");
         const step1Result = await analyzeStep1(page, userContext);
         results.etape1.push(step1Result);
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Étape 2 : Conformité légale (pages légales uniquement)
         if (isLegalPage(page.type_page)) {
             console.log("   → Étape 2: Conformité légale...");
             const step2Result = await analyzeStep2(page, userContext);
             results.etape2.push(step2Result);
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // Étape 3 : Cohérence + Copywriting (pages de contenu, pas légales)
@@ -253,6 +255,7 @@ async function runFullAnalysisV2(scrapedData, userContext) {
             console.log("   → Étape 3: Cohérence + Copywriting...");
             const step3Result = await analyzeStep3(page, userContext);
             results.etape3.push(step3Result);
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // Étape 4 : Liens (toutes les pages)
@@ -261,15 +264,18 @@ async function runFullAnalysisV2(scrapedData, userContext) {
         results.etape4.push(step4Result);
 
         // Pause entre les pages pour éviter le rate limiting
-        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log("   ⏳ Pause anti rate-limit (2s)...");
+        await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     // ===== ÉTAPE 5 : Meta SEO (site-wide) =====
     console.log("\n📊 Étape 5: Analyse Meta SEO (site-wide)...");
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 5
     results.etape5 = await analyzeStep5(scrapedData.all_metas, userContext);
 
     // ===== ÉTAPE 6 : Synthèse Go/No-Go =====
     console.log("\n🎯 Étape 6: Synthèse Go/No-Go...");
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 6
     results.etape6 = await analyzeStep6(results, userContext);
 
     console.log("\n✅ Analyse V2 terminée!");

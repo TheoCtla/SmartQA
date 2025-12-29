@@ -12,27 +12,21 @@ const { runFullAnalysisV2 } = require("../services/ai/gemini.v2.service");
 async function handleAuditV2(req, res) {
     try {
         const {
-            // Obligatoire
             url,
-            // Fortement recommandé
             entreprise,
             activite,
-            // Optionnel - vérification infos
             telephone_attendu,
             gerant_attendu,
             ville_attendue,
-            // Optionnel avancé
             adresse_attendue,
             siret_attendu,
             email_attendu,
             domaines_attendus,
             mots_cles_offre,
             details,
-            // Options
             max_pages = 20
         } = req.body;
 
-        // Validation des champs requis
         if (!url) {
             return res.status(400).json({ error: "L'URL est requise" });
         }
@@ -47,7 +41,6 @@ async function handleAuditV2(req, res) {
         console.log(`🚀 Démarrage de l'audit V2 pour: ${url}`);
         console.log(`${"=".repeat(60)}`);
 
-        // Contexte utilisateur pour l'analyse
         const userContext = {
             url,
             entreprise,
@@ -63,18 +56,14 @@ async function handleAuditV2(req, res) {
             details: details || null
         };
 
-        // Étape 1: Scraping V2 du site
         console.log("\n📥 Phase 1: Scraping du site...");
         const scrapedData = await scrapeWebsiteV2(url, max_pages);
         console.log(`   ✓ ${scrapedData.pages_count} pages scrapées`);
 
-        // Étape 2: Analyse IA complète (6 étapes)
-        console.log("\n🤖 Phase 2: Analyse IA (6 étapes)...");
+        console.log("\n🤖 Phase 2: Analyse IA complète (6 étapes)");
         const analysisResults = await runFullAnalysisV2(scrapedData, userContext);
 
-        // Construction de la réponse
         const result = {
-            // Métadonnées
             meta: {
                 url_auditee: url,
                 entreprise,
@@ -82,14 +71,12 @@ async function handleAuditV2(req, res) {
                 pages_analysees: scrapedData.pages_count,
                 date_audit: new Date().toISOString()
             },
-            // Résultats des 6 étapes
             etape1_orthographe: analysisResults.etape1,
             etape2_legal: analysisResults.etape2,
             etape3_coherence: analysisResults.etape3,
             etape4_liens: analysisResults.etape4,
             etape5_seo: analysisResults.etape5,
             etape6_synthese: analysisResults.etape6,
-            // Données brutes pour debug/référence
             pages_scrapees: scrapedData.pages.map(p => ({
                 url: p.page_url,
                 type: p.type_page,
@@ -99,7 +86,7 @@ async function handleAuditV2(req, res) {
         };
 
         console.log(`\n${"=".repeat(60)}`);
-        console.log(`✅ Audit V2 terminé avec succès!`);
+        console.log(`Audit V2 terminé avec succès!`);
         console.log(`   Décision: ${analysisResults.etape6.decision}`);
         console.log(`${"=".repeat(60)}\n`);
 
@@ -108,7 +95,7 @@ async function handleAuditV2(req, res) {
     } catch (error) {
         console.error("❌ Erreur lors de l'audit V2:", error.message);
         res.status(500).json({
-            error: "Une erreur est survenue lors de l'analyse",
+            error: "❌ Une erreur est survenue lors de l'analyse",
             details: error.message,
         });
     }

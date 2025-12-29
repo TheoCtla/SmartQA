@@ -303,7 +303,7 @@ function AuditFormV2({ onSubmit, isLoading }) {
          </div>
 
          <button type='submit' disabled={isLoading}>
-            {isLoading ? "Analyse en cours..." : "🚀 Lancer l'audit V2"}
+            {isLoading ? "Analyse en cours..." : "Lancer l'audit V2"}
          </button>
       </form>
    );
