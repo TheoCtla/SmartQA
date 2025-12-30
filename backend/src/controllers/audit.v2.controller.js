@@ -5,6 +5,40 @@
 const { scrapeWebsiteV2 } = require("../services/scraper.v2.service");
 const { runFullAnalysisV2 } = require("../services/ai/gemini.v2.service");
 
+// Store pour les connexions SSE actives
+const sseClients = new Map();
+
+/**
+ * Endpoint SSE pour streamer les logs
+ */
+function handleAuditLogsSSE(req, res) {
+    const clientId = Date.now().toString();
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Envoyer un ping initial
+    res.write(`data: ${JSON.stringify({ type: 'connected', message: 'Connexion établie' })}\n\n`);
+
+    sseClients.set(clientId, res);
+
+    req.on('close', () => {
+        sseClients.delete(clientId);
+    });
+}
+
+/**
+ * Envoyer un log à tous les clients SSE
+ */
+function broadcastLog(message, type = 'info') {
+    const data = JSON.stringify({ type, message, timestamp: new Date().toISOString() });
+    sseClients.forEach((client) => {
+        client.write(`data: ${data}\n\n`);
+    });
+}
+
 /**
  * Handler principal pour l'endpoint POST /audit/v2
  * Orchestre: Validation → Scraping V2 → Analyse IA 6 étapes → Résultats
@@ -40,6 +74,7 @@ async function handleAuditV2(req, res) {
         console.log(`\n${"=".repeat(60)}`);
         console.log(`Démarrage de l'audit V2 pour: ${url}`);
         console.log(`${"=".repeat(60)}`);
+        broadcastLog(`Démarrage de l'audit pour: ${url}`, 'start');
 
         const userContext = {
             url,
@@ -57,11 +92,14 @@ async function handleAuditV2(req, res) {
         };
 
         console.log("\nPhase 1: Scraping du site...");
+        broadcastLog("Phase 1: Scraping du site en cours...", 'scraping');
         const scrapedData = await scrapeWebsiteV2(url, max_pages);
         console.log(`   ✓ ${scrapedData.pages_count} pages scrapées`);
+        broadcastLog(`${scrapedData.pages_count} pages scrapées`, 'success');
 
         console.log("\nPhase 2: Analyse IA complète (6 étapes)");
-        const analysisResults = await runFullAnalysisV2(scrapedData, userContext);
+        broadcastLog("Phase 2: Analyse IA (6 étapes)...", 'analysis');
+        const analysisResults = await runFullAnalysisV2(scrapedData, userContext, broadcastLog);
 
         const result = {
             meta: {
@@ -89,16 +127,18 @@ async function handleAuditV2(req, res) {
         console.log(`Audit V2 terminé avec succès!`);
         console.log(`   Décision: ${analysisResults.etape6.decision}`);
         console.log(`${"=".repeat(60)}\n`);
+        broadcastLog(`Audit terminé! Décision: ${analysisResults.etape6.decision}`, 'complete');
 
         res.json(result);
 
     } catch (error) {
         console.error("❌ Erreur lors de l'audit V2:", error.message);
+        broadcastLog(`Erreur: ${error.message}`, 'error');
         res.status(500).json({
-            error: "❌ Une erreur est survenue lors de l'analyse",
+            error: "Une erreur est survenue lors de l'analyse",
             details: error.message,
         });
     }
 }
 
-module.exports = { handleAuditV2 };
+module.exports = { handleAuditV2, handleAuditLogsSSE };
