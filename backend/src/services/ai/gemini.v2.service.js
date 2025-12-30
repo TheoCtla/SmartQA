@@ -237,7 +237,7 @@ async function analyzeStep6(allResults, context) {
 // ============================================
 
 async function runFullAnalysisV2(scrapedData, userContext, broadcastLog = () => { }) {
-    console.log("🤖 Démarrage de l'analyse IA V2...");
+    console.log("Démarrage de l'analyse IA V2...");
     console.log(`   Entreprise: ${userContext.entreprise}`);
     console.log(`   Activité: ${userContext.activite}`);
     console.log(`   Pages à analyser: ${scrapedData.pages.length}`);
@@ -257,15 +257,15 @@ async function runFullAnalysisV2(scrapedData, userContext, broadcastLog = () => 
         const pageNum = i + 1;
         const totalPages = scrapedData.pages.length;
 
-        console.log(`\n📄 Analyse de: ${page.page_url}`);
-        broadcastLog(`📄 Page ${pageNum}/${totalPages}: ${new URL(page.page_url).pathname}`, 'page');
+        console.log(`\nAnalyse de: ${page.page_url}`);
+        broadcastLog(`Page ${pageNum}/${totalPages}: ${new URL(page.page_url).pathname}`, 'page');
 
         // Étape 1 : Orthographe + Extraction (toutes les pages)
         console.log("   → Étape 1: Orthographe + Extraction...");
         broadcastLog(`   → Étape 1: Orthographe + Extraction...`, 'step');
         const step1Result = await analyzeStep1(page, userContext);
         results.etape1.push(step1Result);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Étape 2 : Conformité légale (pages légales uniquement)
         if (isLegalPage(page.type_page)) {
@@ -273,7 +273,7 @@ async function runFullAnalysisV2(scrapedData, userContext, broadcastLog = () => 
             broadcastLog(`   → Étape 2: Conformité légale...`, 'step');
             const step2Result = await analyzeStep2(page, userContext);
             results.etape2.push(step2Result);
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // Étape 3 : Cohérence + Copywriting (pages de contenu, pas légales)
@@ -282,7 +282,7 @@ async function runFullAnalysisV2(scrapedData, userContext, broadcastLog = () => 
             broadcastLog(`   → Étape 3: Cohérence + Copywriting...`, 'step');
             const step3Result = await analyzeStep3(page, userContext);
             results.etape3.push(step3Result);
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // Étape 4 : Liens (toutes les pages)
@@ -292,23 +292,23 @@ async function runFullAnalysisV2(scrapedData, userContext, broadcastLog = () => 
         results.etape4.push(step4Result);
 
         // Pause entre les pages pour éviter le rate limiting
-        console.log("   ⏳ Pause anti rate-limit (2s)...");
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // console.log("   Pause anti rate-limit (2s)...");
+        // await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     // ===== ÉTAPE 5 : Meta SEO (site-wide) =====
-    console.log("\n📊 Étape 5: Analyse Meta SEO (site-wide)...");
-    broadcastLog(`📊 Étape 5: Analyse Meta SEO (site-wide)...`, 'step');
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 5
+    console.log("\n   → Étape 5: Analyse Meta SEO (site-wide)...");
+    broadcastLog(`   → Étape 5: Analyse Meta SEO (site-wide)...`, 'step');
+    // await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 5
     results.etape5 = await analyzeStep5(scrapedData.all_metas, userContext);
 
     // ===== ÉTAPE 6 : Synthèse Go/No-Go =====
-    console.log("\n🎯 Étape 6: Synthèse Go/No-Go...");
-    broadcastLog(`🎯 Étape 6: Synthèse finale...`, 'step');
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 6
+    console.log("\n   → Étape 6: Synthèse Go/No-Go...");
+    broadcastLog(`   → Étape 6: Synthèse finale...`, 'step');
+    // await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 6
     results.etape6 = await analyzeStep6(results, userContext);
 
-    console.log("\n✅ Analyse V2 terminée!");
+    console.log("\nAnalyse V2 terminée!");
     console.log(`   Décision: ${results.etape6.decision}`);
 
     return results;
