@@ -214,6 +214,14 @@ RÈGLES PROMOS ET DATES (TRÈS IMPORTANT) :
     - Si la date est passée cette année : gravité = "importante" (probablement expirée, à vérifier)
   → Ajouter un champ "promo" avec les détails
 
+RÈGLES HORAIRES D'OUVERTURE :
+- Si des horaires sont affichés, vérifier qu'ils sont cohérents avec le type d'activité.
+- Signaler comme "horaires_suspects" (gravité "importante") si :
+  * Horaires impossibles (ex: ouvert de 25h à 30h)
+  * Horaires incohérents avec l'activité (ex: magasin physique ouvert 24h/24, ou à des heures de nuits pour des magasins qui ne sont pas habituellement ouvert de nuit)
+  * Horaires très inhabituels pour ce type de commerce
+- NE PAS signaler si les horaires sont classiques (ex: 9h-12h 14h-19h pour un commerce)
+
 RÉPONDS EN JSON :
 {
   "page_url": "${pageUrl}",
@@ -222,7 +230,7 @@ RÉPONDS EN JSON :
     {
       "texte": "",
       "raison": "",
-      "type": "hors_sujet|copier_coller|contradiction|promo_expiree|promo_date_ambigue|suspicion",
+      "type": "hors_sujet|copier_coller|contradiction|promo_expiree|promo_date_ambigue|horaires_suspects|suspicion",
       "gravite": "mineure|importante",
       "promo": {
         "date_fin_texte": "31 décembre",
