@@ -93,8 +93,8 @@ async function handleAuditV2(req, res) {
 
         console.log("\nPhase 1: Scraping du site...");
         broadcastLog("Phase 1: Scraping du site en cours...", 'scraping');
-        const scrapedData = await scrapeWebsiteV2(url, max_pages);
-        console.log(`   ✓ ${scrapedData.pages_count} pages scrapées`);
+        const scrapedData = await scrapeWebsiteV2(url, max_pages, broadcastLog);
+        console.log(`   ${scrapedData.pages_count} pages scrapées`);
         broadcastLog(`${scrapedData.pages_count} pages scrapées`, 'success');
 
         console.log("\nPhase 2: Analyse IA complète (6 étapes)");

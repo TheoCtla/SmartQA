@@ -180,7 +180,7 @@ function extractPageContentV2(html, pageUrl, baseHostname) {
  * @param {number} maxPages - Nombre maximum de pages à crawler
  * @returns {Promise<object>} Données du site
  */
-async function scrapeWebsiteV2(startUrl, maxPages = 20) {
+async function scrapeWebsiteV2(startUrl, maxPages = 20, broadcastLog = () => { }) {
     const visited = new Set();
     const toVisit = [startUrl];
     const pages = [];
@@ -193,7 +193,7 @@ async function scrapeWebsiteV2(startUrl, maxPages = 20) {
         throw new Error("URL de départ invalide");
     }
 
-    console.log(`🕷️  Crawling V2 du site (max ${maxPages} pages)...`);
+    console.log(`Crawling V2 du site (max ${maxPages} pages)...`);
 
     while (toVisit.length > 0 && visited.size < maxPages) {
         const url = toVisit.shift();
@@ -203,7 +203,9 @@ async function scrapeWebsiteV2(startUrl, maxPages = 20) {
         visited.add(url);
 
         try {
+            const pathname = new URL(url).pathname;
             console.log(`   Page ${visited.size}/${maxPages}: ${url}`);
+            broadcastLog(`   Page ${visited.size}/${maxPages}: ${pathname}`, 'scraping');
 
             // Récupérer le HTML
             const html = await fetchPage(url);
@@ -235,14 +237,14 @@ async function scrapeWebsiteV2(startUrl, maxPages = 20) {
             });
 
         } catch (error) {
-            console.log(`   ⚠️  Erreur sur ${url}: ${error.message}`);
+            console.log(`   Erreur sur ${url}: ${error.message}`);
         }
 
         // Petite pause pour ne pas surcharger le serveur
         await new Promise(resolve => setTimeout(resolve, 200));
     }
 
-    console.log(`✅ Crawling V2 terminé: ${visited.size} pages analysées`);
+    console.log(`Crawling V2 terminé: ${visited.size} pages analysées`);
 
     // Préparer les données agrégées
     const allMetas = pages.map(p => ({

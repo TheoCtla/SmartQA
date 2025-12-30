@@ -62,17 +62,11 @@ MISSION :
 RÈGLES ORTHOGRAPHE (TRÈS IMPORTANT) :
 - Si une phrase contient plusieurs fautes, regroupe-les en UNE SEULE entrée avec l'extrait fautif complet et sa version corrigée.
 - Types d'erreurs : fautes d'orthographe, accords singulier/pluriel, accords masculin/féminin, conjugaisons, accents, homophones, doubles consonnes, oublie de lettres.
-
-⚠️ RÈGLES ANTI-HALLUCINATION (CRITIQUES) :
-- AVANT de signaler une erreur, VÉRIFIE que "erreur" et "correction" sont DIFFÉRENTS.
-- Si "erreur" = "correction", NE PAS signaler.
-- Le champ "erreur" doit être une COPIE EXACTE d'un extrait RÉELLEMENT présent dans le texte.
-- Ne signale que des erreurs dont tu es CERTAIN.
+- Le champ "erreur" doit être une copie exacte du texte fautif.
 
 🚫 EXCLUSIONS (NE PAS ANALYSER) :
-- Ne remontes pas les fautes dans les avis/témoignages clients.
-- Les titres d'images, de vidéos ou de médias intégrés (souvent courts et génériques).
-- Les noms propres, marques, et termes techniques intentionnels.
+- Avis/témoignages clients.
+- Noms propres, marques, termes techniques.
 
 RÈGLES EXTRACTION :
 - Téléphone : liste tous les numéros trouvés (texte + tel_links).
