@@ -55,20 +55,30 @@ tel_links_extraits :
 ${JSON.stringify(telLinks || [])}
 
 MISSION :
-1. ORTHOGRAPHE : détecter les fautes d'orthographe et grammaire (fautes réelles uniquement, pas du style).
+1. ORTHOGRAPHE : détecter les fautes d'orthographe et de grammaire RÉELLEMENT PRÉSENTES dans le texte.
 2. EXTRACTION : trouver les téléphones et le nom du responsable/gérant s'ils sont présents.
 3. COHÉRENCE : si les valeurs attendues sont fournies, comparer téléphone_trouve et nom_trouve aux attendus.
 
-RÈGLES :
-- Téléphone : liste tous les numéros trouvés (texte + tel_links).
-- Nom : extraire le nom du propriétaire/gérant/responsable (sans titres : Monsieur/Madame/M./Mme/Mr/Mrs).
-- Cohérence : "ok" si identique, "different" si différent, "non_trouve" si non trouvé, "non_verifiable" si attendu = null
+RÈGLES ORTHOGRAPHE (TRÈS IMPORTANT) :
+- Si une phrase contient plusieurs fautes, regroupe-les en UNE SEULE entrée avec l'extrait fautif complet et sa version corrigée.
+- Types d'erreurs : fautes d'orthographe, accords singulier/pluriel, accords masculin/féminin, conjugaisons, accents, homophones, doubles consonnes, oublie de lettres.
 
-EXCLUSIONS IMPORTANTES (ne pas extraire) :
-- IGNORER les noms et téléphones trouvés dans les sections d'avis/témoignages clients.
-- Ces sections peuvent s'appeler : "Avis", "Témoignages", "Reviews", "Nos clients témoignent", "Ce que disent nos clients", "Avis clients", "Témoignages clients", "Ils nous font confiance", ou tout contexte similaire suggérant des retours de clients.
-- Les noms de clients qui laissent des avis ne doivent PAS être inclus dans noms_trouves.
-- Seuls les noms et téléphones du gérant/propriétaire/responsable de l'entreprise doivent être extraits.
+⚠️ RÈGLES ANTI-HALLUCINATION (CRITIQUES) :
+- AVANT de signaler une erreur, VÉRIFIE que "erreur" et "correction" sont DIFFÉRENTS.
+- Si "erreur" = "correction", NE PAS signaler.
+- Le champ "erreur" doit être une COPIE EXACTE d'un extrait RÉELLEMENT présent dans le texte.
+- Ne signale que des erreurs dont tu es CERTAIN.
+
+🚫 EXCLUSIONS (NE PAS ANALYSER) :
+- Ne remontes pas les fautes dans les avis/témoignages clients.
+- Les titres d'images, de vidéos ou de médias intégrés (souvent courts et génériques).
+- Les noms propres, marques, et termes techniques intentionnels.
+
+RÈGLES EXTRACTION :
+- Téléphone : liste tous les numéros trouvés (texte + tel_links).
+- Nom : extraire le nom du propriétaire/gérant/responsable UNIQUEMENT sur les pages légales (mentions légales, politique de confidentialité, CGV, CGU). Sur les autres pages, retourner noms_trouves = [].
+- Cohérence : "ok" si identique, "different" si différent, "non_trouve" si non trouvé, "non_verifiable" si attendu = null
+- Ne pas extraire les noms de clients d'avis.
 
 RÉPONDS EN JSON :
 {

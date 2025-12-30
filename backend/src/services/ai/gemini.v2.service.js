@@ -35,7 +35,26 @@ async function analyzeStep1(pageData, context) {
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        return JSON.parse(cleanJsonResponse(response.text()));
+        const parsed = JSON.parse(cleanJsonResponse(response.text()));
+
+        // Nettoyer les faux positifs d'orthographe (erreur === correction)
+        if (parsed.orthographe && Array.isArray(parsed.orthographe)) {
+            parsed.orthographe = parsed.orthographe.filter(item => {
+                // Normalisation Unicode NFC + suppression caractères invisibles
+                const normalize = (str) => (str || "")
+                    .normalize("NFC")
+                    .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, " ")
+                    .replace(/\s+/g, " ")
+                    .trim()
+                    .toLowerCase();
+
+                const erreur = normalize(item.erreur);
+                const correction = normalize(item.correction);
+                return erreur !== correction && erreur.length > 0;
+            });
+        }
+
+        return parsed;
     } catch (error) {
         console.error(`Erreur Step1 pour ${pageData.page_url}:`, error.message);
         return {

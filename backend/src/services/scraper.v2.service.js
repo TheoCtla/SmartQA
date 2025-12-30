@@ -107,6 +107,27 @@ function extractPageContentV2(html, pageUrl, baseHostname) {
     // Supprimer les éléments non pertinents pour le texte
     $("script, style, noscript, iframe, svg").remove();
 
+    // Supprimer les sections d'avis/témoignages clients (pour éviter les faux positifs)
+    // Sélecteurs par classe
+    $('[class*="avis"], [class*="review"], [class*="reviews"]').remove();
+    $('[class*="testimonial"], [class*="testimonials"], [class*="temoignage"], [class*="temoignages"]').remove();
+    $('[class*="feedback"], [class*="rating"], [class*="ratings"]').remove();
+    $('[class*="customer-comment"], [class*="client-comment"], [class*="user-comment"]').remove();
+    $('[class*="opinion"], [class*="recommandation"], [class*="recommendation"]').remove();
+
+    // Sélecteurs par ID
+    $('[id*="avis"], [id*="review"], [id*="reviews"]').remove();
+    $('[id*="testimonial"], [id*="testimonials"], [id*="temoignage"], [id*="temoignages"]').remove();
+    $('[id*="feedback"], [id*="rating"], [id*="ratings"]').remove();
+
+    // Data attributes
+    $('[data-section*="avis"], [data-section*="review"], [data-section*="testimonial"]').remove();
+
+    // Widgets d'avis tiers courants
+    $('.elfsight-app-widget, .trustpilot-widget, .google-reviews, .yotpo-widget').remove();
+    $('[class*="widget-avis"], [class*="widget-review"], [class*="widget-rating"]').remove();
+    $('.reviews-widget, .avis-verifies, .societe-des-avis-garantis').remove();
+
     // Texte des balises importantes
     const textSelectors = [
         "h1", "h2", "h3", "h4", "h5", "h6",

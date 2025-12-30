@@ -3,16 +3,12 @@ import "./AuditFormV2.css";
 
 function AuditFormV2({ onSubmit, isLoading }) {
    const [formData, setFormData] = useState({
-      // Obligatoire
       url: "",
-      // Fortement recommandé
       entreprise: "",
       activite: "",
-      // Vérification infos client
       telephone_attendu: "",
       gerant_attendu: "",
       ville_attendue: "",
-      // Optionnel avancé
       adresse_attendue: "",
       siret_attendu: "",
       email_attendu: "",
@@ -303,7 +299,7 @@ function AuditFormV2({ onSubmit, isLoading }) {
          </div>
 
          <button type='submit' disabled={isLoading}>
-            {isLoading ? "Analyse en cours..." : "Lancer l'audit V2"}
+            {isLoading ? "Analyse en cours..." : "Lancer l'audit"}
          </button>
       </form>
    );

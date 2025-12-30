@@ -330,6 +330,37 @@
   color: #f59e0b;
 }
 
+/* Error categories */
+.errors-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.error-category {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.error-category summary {
+  padding: 0.75rem 1rem;
+  background: rgba(100, 116, 139, 0.1);
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-category summary:hover {
+  background: rgba(100, 116, 139, 0.2);
+}
+
+.error-category .errors-list {
+  padding: 0.5rem;
+}
+
 /* Deduplicated extractions */
 .error-pages {
   font-size: 0.8rem;
@@ -666,6 +697,10 @@
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+lien-type a {
+  color: #60a5fa;
 }
 
 .lien-url {

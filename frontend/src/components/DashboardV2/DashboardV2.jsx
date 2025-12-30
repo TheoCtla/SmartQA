@@ -225,19 +225,39 @@ function TabSynthese({ data }) {
 // TAB: Orthographe (Étape 1)
 // ============================================
 function TabOrthographe({ data }) {
-   // Collecter toutes les erreurs avec leurs pages
-   const allErrors = data.flatMap((page) =>
-      (page.orthographe || []).map((err) => ({
-         ...err,
-         page_url: page.page_url,
-      }))
-   );
+   // Normaliser un texte pour comparaison (supprime uniquement caractères invisibles)
+   const normalizeForComparison = (text) => {
+      return (text || "")
+         .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, " ") // Remplace caractères invisibles par espace
+         .replace(/\s+/g, " ") // Normalise les espaces multiples
+         .trim()
+         .toLowerCase();
+   };
 
-   // Dédupliquer les erreurs par "erreur" + "correction"
+   // Collecter toutes les erreurs avec leurs pages
+   const allErrors = data
+      .flatMap((page) =>
+         (page.orthographe || []).map((err) => ({
+            ...err,
+            page_url: page.page_url,
+         }))
+      )
+      .filter((err) => {
+         // Filtrer les hallucinations où erreur === correction
+         const errNorm = normalizeForComparison(err.erreur);
+         const corrNorm = normalizeForComparison(err.correction);
+         return errNorm !== corrNorm && errNorm.length > 0;
+      });
+
+   // Dédupliquer les erreurs par "erreur" + "correction" (normalisé)
+   // Fusionne aussi les erreurs qui se contiennent (ex: "fort"/"forts" inclus dans "point fort"/"points forts")
    const deduplicateErrors = (errors) => {
       const grouped = {};
       errors.forEach((err) => {
-         const key = `${err.erreur}|${err.correction}`;
+         const erreurNorm = (err.erreur || "").trim().toLowerCase();
+         const correctionNorm = (err.correction || "").trim().toLowerCase();
+         const key = `${erreurNorm}|${correctionNorm}`;
+
          if (!grouped[key]) {
             grouped[key] = {
                ...err,
@@ -247,33 +267,75 @@ function TabOrthographe({ data }) {
             grouped[key].page_urls.push(err.page_url);
          }
       });
-      return Object.values(grouped);
+
+      // Fusionner les erreurs qui se contiennent
+      const values = Object.values(grouped);
+      const toRemove = new Set();
+
+      values.forEach((err1, i) => {
+         values.forEach((err2, j) => {
+            if (i !== j && !toRemove.has(j)) {
+               const e1 = (err1.erreur || "").toLowerCase();
+               const e2 = (err2.erreur || "").toLowerCase();
+               const c1 = (err1.correction || "").toLowerCase();
+               const c2 = (err2.correction || "").toLowerCase();
+
+               // Si err1 est contenu dans err2, fusionner dans err2
+               if (e2.includes(e1) && c2.includes(c1) && e1 !== e2) {
+                  // Fusionner les pages
+                  err1.page_urls.forEach((url) => {
+                     if (!err2.page_urls.includes(url)) {
+                        err2.page_urls.push(url);
+                     }
+                  });
+                  toRemove.add(i);
+               }
+            }
+         });
+      });
+
+      return values.filter((_, i) => !toRemove.has(i));
    };
 
-   // Dédupliquer les téléphones et noms extraits
    const deduplicateExtractions = () => {
-      const allPhones = new Map(); // phone -> [pages]
-      const allNames = new Map(); // name -> [pages]
+      const allPhones = new Map();
+      const allNames = new Map();
+
+      const normalizeValue = (val) => {
+         if (typeof val === "string") return val;
+         if (typeof val === "object" && val !== null) {
+            return (
+               val.numero ||
+               val.texte ||
+               val.name ||
+               val.value ||
+               JSON.stringify(val)
+            );
+         }
+         return String(val);
+      };
 
       data.forEach((page) => {
          const phones = page.extraction?.telephones_trouves || [];
          const names = page.extraction?.noms_trouves || [];
 
          phones.forEach((phone) => {
-            if (!allPhones.has(phone)) {
-               allPhones.set(phone, []);
+            const normalizedPhone = normalizeValue(phone);
+            if (!allPhones.has(normalizedPhone)) {
+               allPhones.set(normalizedPhone, []);
             }
-            if (!allPhones.get(phone).includes(page.page_url)) {
-               allPhones.get(phone).push(page.page_url);
+            if (!allPhones.get(normalizedPhone).includes(page.page_url)) {
+               allPhones.get(normalizedPhone).push(page.page_url);
             }
          });
 
          names.forEach((name) => {
-            if (!allNames.has(name)) {
-               allNames.set(name, []);
+            const normalizedName = normalizeValue(name);
+            if (!allNames.has(normalizedName)) {
+               allNames.set(normalizedName, []);
             }
-            if (!allNames.get(name).includes(page.page_url)) {
-               allNames.get(name).push(page.page_url);
+            if (!allNames.get(normalizedName).includes(page.page_url)) {
+               allNames.get(normalizedName).push(page.page_url);
             }
          });
       });
@@ -291,40 +353,120 @@ function TabOrthographe({ data }) {
       }
    };
 
+   // Catégoriser une erreur (orthographe, grammaire, autre)
+   const categorizeError = (erreur, correction) => {
+      const err = (erreur || "").toLowerCase();
+      const corr = (correction || "").toLowerCase();
+
+      // Autre : espaces ajoutés/supprimés ou ponctuation
+      if (err.replace(/\s/g, "") === corr.replace(/\s/g, "")) {
+         return "autre"; // Différence uniquement d'espaces
+      }
+      if (err.replace(/[.,!?;:]/g, "") === corr.replace(/[.,!?;:]/g, "")) {
+         return "autre"; // Différence uniquement de ponctuation
+      }
+
+      // Grammaire : accords (pluriel, féminin, conjugaison)
+      // Détection : même racine mais terminaison différente
+      const errWords = err.split(/\s+/);
+      const corrWords = corr.split(/\s+/);
+
+      if (errWords.length === corrWords.length) {
+         let isGrammar = false;
+         for (let i = 0; i < errWords.length; i++) {
+            const e = errWords[i];
+            const c = corrWords[i];
+            // Si un mot diffère juste par la fin (s, e, es, ent, etc.)
+            if (e !== c && (c.startsWith(e) || e.startsWith(c))) {
+               const diffLen = Math.abs(c.length - e.length);
+               if (diffLen <= 3) {
+                  isGrammar = true;
+               }
+            }
+         }
+         if (isGrammar) return "grammaire";
+      }
+
+      // Par défaut : orthographe
+      return "orthographe";
+   };
+
    const errorsDedup = deduplicateErrors(allErrors);
+
+   // Catégoriser les erreurs
+   const errorsCategorized = errorsDedup.map((err) => ({
+      ...err,
+      categorie: categorizeError(err.erreur, err.correction),
+   }));
+
+   const errorsOrthographe = errorsCategorized.filter(
+      (e) => e.categorie === "orthographe"
+   );
+   const errorsGrammaire = errorsCategorized.filter(
+      (e) => e.categorie === "grammaire"
+   );
+   const errorsAutre = errorsCategorized.filter((e) => e.categorie === "autre");
+
    const { phones, names } = deduplicateExtractions();
+
+   // Composant pour afficher une liste d'erreurs
+   const ErrorList = ({ errors, title, emoji }) =>
+      errors.length > 0 && (
+         <details className='error-category' open>
+            <summary>
+               {emoji} {title} ({errors.length})
+            </summary>
+            <div className='errors-list'>
+               {errors.map((err, i) => (
+                  <div key={i} className={`error-item ${err.gravite}`}>
+                     <div className='error-header'>
+                        <span className='error-word'>« {err.erreur} »</span>
+                        <span className='arrow'>→</span>
+                        <span className='correction-word'>
+                           « {err.correction} »
+                        </span>
+                        <span className={`gravite-badge ${err.gravite}`}>
+                           {err.gravite}
+                        </span>
+                     </div>
+                     {err.contexte && (
+                        <p className='error-context'>{err.contexte}</p>
+                     )}
+                     <div className='error-pages'>
+                        📄 {err.page_urls.map(getSlug).join(", ")}
+                     </div>
+                  </div>
+               ))}
+            </div>
+         </details>
+      );
 
    return (
       <div className='tab-orthographe'>
-         {/* Erreurs d'orthographe */}
+         {/* Erreurs catégorisées */}
          <div className='section'>
-            <h3>Fautes d'orthographe ({errorsDedup.length})</h3>
-            {errorsDedup.length === 0 ? (
+            <h3>Fautes détectées ({errorsCategorized.length})</h3>
+            {errorsCategorized.length === 0 ? (
                <div className='alert alert-success'>
                   ✅ Aucune faute détectée
                </div>
             ) : (
-               <div className='errors-list'>
-                  {errorsDedup.map((err, i) => (
-                     <div key={i} className={`error-item ${err.gravite}`}>
-                        <div className='error-header'>
-                           <span className='error-word'>« {err.erreur} »</span>
-                           <span className='arrow'>→</span>
-                           <span className='correction-word'>
-                              « {err.correction} »
-                           </span>
-                           <span className={`gravite-badge ${err.gravite}`}>
-                              {err.gravite}
-                           </span>
-                        </div>
-                        {err.contexte && (
-                           <p className='error-context'>{err.contexte}</p>
-                        )}
-                        <div className='error-pages'>
-                           📄 {err.page_urls.map(getSlug).join(", ")}
-                        </div>
-                     </div>
-                  ))}
+               <div className='errors-categories'>
+                  <ErrorList
+                     errors={errorsOrthographe}
+                     title='Orthographe'
+                     emoji='📝'
+                  />
+                  <ErrorList
+                     errors={errorsGrammaire}
+                     title='Grammaire'
+                     emoji='📖'
+                  />
+                  <ErrorList
+                     errors={errorsAutre}
+                     title='Typographie (espaces, ponctuation)'
+                     emoji='⌨️'
+                  />
                </div>
             )}
          </div>
