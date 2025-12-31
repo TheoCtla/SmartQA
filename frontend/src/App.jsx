@@ -1,9 +1,9 @@
 import { useState } from "react";
 import api from "./services/api";
 import "./index.css";
-import AuditFormV2 from "./components/AuditForm/AuditFormV2";
+import AuditForm from "./components/AuditForm/AuditForm";
 import Loading from "./components/Loading/Loading";
-import DashboardV2 from "./components/DashboardV2/DashboardV2";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 function App() {
    const [loading, setLoading] = useState(false);
@@ -18,10 +18,9 @@ function App() {
       setFormData(data);
 
       try {
-         // Appel à l'API V2
-         const response = await api.post("/audit/v2", data);
+         const response = await api.post("/audit", data);
          setResults(response.data);
-         console.log("Résultats V2:", response.data);
+         console.log("Résultats:", response.data);
       } catch (err) {
          const errorMessage =
             err.response?.data?.error ||
@@ -47,7 +46,7 @@ function App() {
 
          <main>
             {!results && !loading && (
-               <AuditFormV2 onSubmit={handleSubmit} isLoading={loading} />
+               <AuditForm onSubmit={handleSubmit} isLoading={loading} />
             )}
 
             {loading && <Loading />}
@@ -63,7 +62,7 @@ function App() {
 
             {results && (
                <>
-                  <DashboardV2 results={results} />
+                  <Dashboard results={results} />
 
                   <div className='audit-actions'>
                      <button

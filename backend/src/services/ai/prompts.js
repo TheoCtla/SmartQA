@@ -1,5 +1,5 @@
 /**
- * Prompts V2 pour SmartQA - Pipeline 6 étapes
+ * Prompts pour SmartQA - Pipeline 6 étapes
  * Chaque fonction retourne un prompt structuré avec output JSON strict
  */
 

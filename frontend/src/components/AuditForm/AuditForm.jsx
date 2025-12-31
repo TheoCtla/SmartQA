@@ -1,7 +1,7 @@
 import { useState } from "react";
-import "./AuditFormV2.css";
+import "./AuditForm.css";
 
-function AuditFormV2({ onSubmit, isLoading }) {
+function AuditForm({ onSubmit, isLoading }) {
    const [formData, setFormData] = useState({
       url: "",
       entreprise: "",
@@ -68,7 +68,7 @@ function AuditFormV2({ onSubmit, isLoading }) {
          return;
       }
 
-      // Préparer les données pour l'API V2
+      // Préparer les données pour l'API
       const apiData = {
          url: formData.url,
          entreprise: formData.entreprise,
@@ -92,8 +92,8 @@ function AuditFormV2({ onSubmit, isLoading }) {
    };
 
    return (
-      <form className='audit-form-v2 card' onSubmit={handleSubmit}>
-         <h2>🔍 Nouvel Audit V2</h2>
+      <form className='audit-form card' onSubmit={handleSubmit}>
+         <h2>Nouvel Audit</h2>
          <p className='form-subtitle'>
             Pipeline 6 étapes avec analyse IA avancée
          </p>
@@ -305,4 +305,4 @@ function AuditFormV2({ onSubmit, isLoading }) {
    );
 }
 
-export default AuditFormV2;
+export default AuditForm;

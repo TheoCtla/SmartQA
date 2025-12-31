@@ -1,5 +1,5 @@
 /**
- * Scraper V2 pour SmartQA
+ * Scraper pour SmartQA
  * Extraction enrichie : classification des pages, liens typés, tel/mailto, metas
  */
 const axios = require("axios");
@@ -23,13 +23,13 @@ async function fetchPage(url) {
 }
 
 /**
- * Extrait le contenu enrichi d'une page HTML pour V2
+ * Extrait le contenu enrichi d'une page HTML
  * @param {string} html - Contenu HTML de la page
  * @param {string} pageUrl - URL de la page
  * @param {string} baseHostname - Hostname du site principal
  * @returns {object} Données extraites enrichies
  */
-function extractPageContentV2(html, pageUrl, baseHostname) {
+function extractPageContent(html, pageUrl, baseHostname) {
     const $ = cheerio.load(html);
 
     // ===== META TAGS =====
@@ -180,7 +180,7 @@ function extractPageContentV2(html, pageUrl, baseHostname) {
  * @param {number} maxPages - Nombre maximum de pages à crawler
  * @returns {Promise<object>} Données du site
  */
-async function scrapeWebsiteV2(startUrl, maxPages = 20, broadcastLog = () => { }) {
+async function scrapeWebsite(startUrl, maxPages = 20, broadcastLog = () => { }) {
     const visited = new Set();
     const toVisit = [startUrl];
     const pages = [];
@@ -193,7 +193,7 @@ async function scrapeWebsiteV2(startUrl, maxPages = 20, broadcastLog = () => { }
         throw new Error("URL de départ invalide");
     }
 
-    console.log(`Crawling V2 du site (max ${maxPages} pages)...`);
+    console.log(`Crawling du site (max ${maxPages} pages)...`);
 
     while (toVisit.length > 0 && visited.size < maxPages) {
         const url = toVisit.shift();
@@ -211,7 +211,7 @@ async function scrapeWebsiteV2(startUrl, maxPages = 20, broadcastLog = () => { }
             const html = await fetchPage(url);
 
             // Extraire le contenu enrichi
-            const extracted = extractPageContentV2(html, url, baseHostname);
+            const extracted = extractPageContent(html, url, baseHostname);
 
             // Classifier le type de page
             const pageType = classifyPageType(url);
@@ -244,7 +244,7 @@ async function scrapeWebsiteV2(startUrl, maxPages = 20, broadcastLog = () => { }
         await new Promise(resolve => setTimeout(resolve, 200));
     }
 
-    console.log(`Crawling V2 terminé: ${visited.size} pages analysées`);
+    console.log(`Crawling terminé: ${visited.size} pages analysées`);
 
     // Préparer les données agrégées
     const allMetas = pages.map(p => ({
@@ -269,6 +269,6 @@ async function scrapeWebsiteV2(startUrl, maxPages = 20, broadcastLog = () => { }
 
 module.exports = {
     fetchPage,
-    extractPageContentV2,
-    scrapeWebsiteV2
+    extractPageContent,
+    scrapeWebsite
 };

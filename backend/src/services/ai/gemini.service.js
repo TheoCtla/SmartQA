@@ -1,5 +1,5 @@
 /**
- * Service Gemini V2 pour SmartQA
+ * Service Gemini pour SmartQA
  * Orchestration des 6 étapes d'analyse IA
  */
 const { genAI } = require("../../config/gemini.config");
@@ -11,7 +11,7 @@ const {
     getStep4Prompt,
     getStep5Prompt,
     getStep6Prompt
-} = require("./prompts.v2");
+} = require("./prompts");
 
 // ============================================
 // ÉTAPE 1 - Orthographe + Extraction + Cohérence (par page)
@@ -236,8 +236,8 @@ async function analyzeStep6(allResults, context) {
 // ORCHESTRATION COMPLÈTE
 // ============================================
 
-async function runFullAnalysisV2(scrapedData, userContext, broadcastLog = () => { }) {
-    console.log("Démarrage de l'analyse IA V2...");
+async function runFullAnalysis(scrapedData, userContext, broadcastLog = () => { }) {
+    console.log("Démarrage de l'analyse IA...");
     console.log(`   Entreprise: ${userContext.entreprise}`);
     console.log(`   Activité: ${userContext.activite}`);
     console.log(`   Pages à analyser: ${scrapedData.pages.length}`);
@@ -308,7 +308,7 @@ async function runFullAnalysisV2(scrapedData, userContext, broadcastLog = () => 
     // await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 6
     results.etape6 = await analyzeStep6(results, userContext);
 
-    console.log("\nAnalyse V2 terminée!");
+    console.log("\nAnalyse terminée!");
     console.log(`   Décision: ${results.etape6.decision}`);
 
     return results;
@@ -321,5 +321,5 @@ module.exports = {
     analyzeStep4,
     analyzeStep5,
     analyzeStep6,
-    runFullAnalysisV2
+    runFullAnalysis
 };

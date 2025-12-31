@@ -1,7 +1,7 @@
 import { useState } from "react";
-import "./DashboardV2.css";
+import "./Dashboard.css";
 
-function DashboardV2({ results }) {
+function Dashboard({ results }) {
    const [activeTab, setActiveTab] = useState("synthese");
 
    const {
@@ -39,7 +39,7 @@ function DashboardV2({ results }) {
    ];
 
    return (
-      <div className='dashboard-v2'>
+      <div className='dashboard'>
          {/* Header avec méta infos */}
          <div className='dashboard-header card'>
             <div className='header-info'>
@@ -51,10 +51,10 @@ function DashboardV2({ results }) {
                </p>
             </div>
             <div className={`decision-big ${etape6_synthese.decision}`}>
-               {etape6_synthese.decision === "go" && "✅ GO"}
+               {etape6_synthese.decision === "go" && "GO"}
                {etape6_synthese.decision === "go_avec_reserves" &&
-                  "⚠️ GO avec réserves"}
-               {etape6_synthese.decision === "no_go" && "❌ NO GO"}
+                  "GO avec réserves"}
+               {etape6_synthese.decision === "no_go" && "NO GO"}
             </div>
          </div>
 
@@ -150,7 +150,7 @@ function TabSynthese({ data }) {
                         <span className='priority-resume'>{item.resume}</span>
                         {item.page_urls.length > 0 && (
                            <span className='priority-urls'>
-                              📄 {item.page_urls.map(getSlug).join(", ")}
+                              {item.page_urls.map(getSlug).join(", ")}
                            </span>
                         )}
                      </li>
@@ -170,7 +170,7 @@ function TabSynthese({ data }) {
                         <span className='priority-resume'>{item.resume}</span>
                         {item.page_urls.length > 0 && (
                            <span className='priority-urls'>
-                              📄 {item.page_urls.map(getSlug).join(", ")}
+                              {item.page_urls.map(getSlug).join(", ")}
                            </span>
                         )}
                      </li>
@@ -189,7 +189,7 @@ function TabSynthese({ data }) {
                         <span className='priority-resume'>{item.resume}</span>
                         {item.page_urls.length > 0 && (
                            <span className='priority-urls'>
-                              📄 {item.page_urls.map(getSlug).join(", ")}
+                              {item.page_urls.map(getSlug).join(", ")}
                            </span>
                         )}
                      </li>
@@ -201,7 +201,7 @@ function TabSynthese({ data }) {
          {/* Checklist */}
          {checklist.length > 0 && (
             <div className='checklist-section'>
-               <h3>📋 Checklist de vérification manuelle</h3>
+               <h3>Checklist de vérification manuelle</h3>
                <ul>
                   {checklist.map((item, i) => (
                      <li key={i}>{item}</li>
@@ -214,7 +214,7 @@ function TabSynthese({ data }) {
             p1Dedup.length === 0 &&
             p2Dedup.length === 0 && (
                <div className='alert alert-success'>
-                  ✅ Aucun problème détecté !
+                  Aucun problème détecté !
                </div>
             )}
       </div>
@@ -447,9 +447,7 @@ function TabOrthographe({ data }) {
          <div className='section'>
             <h3>Fautes détectées ({errorsCategorized.length})</h3>
             {errorsCategorized.length === 0 ? (
-               <div className='alert alert-success'>
-                  ✅ Aucune faute détectée
-               </div>
+               <div className='alert alert-success'>Aucune faute détectée</div>
             ) : (
                <div className='errors-categories'>
                   <ErrorList
@@ -490,7 +488,7 @@ function TabOrthographe({ data }) {
                                     {phone}
                                  </span>
                                  <span className='extraction-pages'>
-                                    📄 {pages.map(getSlug).join(", ")}
+                                    {pages.map(getSlug).join(", ")}
                                  </span>
                               </div>
                            )
@@ -501,12 +499,12 @@ function TabOrthographe({ data }) {
                   {/* Noms */}
                   {names.size > 0 && (
                      <div className='extraction-group'>
-                        <h4>👤 Noms/Responsables ({names.size})</h4>
+                        <h4>Noms/Responsables ({names.size})</h4>
                         {Array.from(names.entries()).map(([name, pages], i) => (
                            <div key={i} className='extraction-item'>
                               <span className='extraction-value'>{name}</span>
                               <span className='extraction-pages'>
-                                 📄 {pages.map(getSlug).join(", ")}
+                                 {pages.map(getSlug).join(", ")}
                               </span>
                            </div>
                         ))}
@@ -543,9 +541,7 @@ function TabLegal({ data }) {
 
    if (data.length === 0) {
       return (
-         <div className='alert alert-success'>
-            ✅ Aucune page légale analysée
-         </div>
+         <div className='alert alert-success'>Aucune page légale analysée</div>
       );
    }
 
@@ -606,7 +602,7 @@ function TabCoherence({ data }) {
          {/* Pages avec problèmes */}
          {pagesWithIssues.length > 0 && (
             <div className='section'>
-               <h3>⚠️ Pages avec problèmes ({pagesWithIssues.length})</h3>
+               <h3>Pages avec problèmes ({pagesWithIssues.length})</h3>
                {pagesWithIssues.map((page, i) => (
                   <div key={i} className='coherence-card warning'>
                      <p className='coherence-url'>{page.page_url}</p>
@@ -621,14 +617,14 @@ function TabCoherence({ data }) {
                               >
                                  <span className={`issue-type ${issue.type}`}>
                                     {issue.type === "promo_date_ambigue"
-                                       ? "📅 date ambiguë"
+                                       ? "date ambiguë"
                                        : issue.type}
                                  </span>
                                  <p>« {issue.texte} »</p>
                                  <p className='issue-raison'>{issue.raison}</p>
                                  {issue.promo && (
                                     <p className='issue-promo-detail'>
-                                       📅 Date trouvée : "
+                                       Date trouvée : "
                                        {issue.promo.date_fin_texte}"
                                        {issue.promo.annee_presente
                                           ? ` (année explicite: ${issue.promo.date_fin_interpretee})`
@@ -642,14 +638,14 @@ function TabCoherence({ data }) {
 
                      {page.copywriting_issues?.length > 0 && (
                         <div className='copywriting-block'>
-                           <h4>💡 Suggestions copywriting</h4>
+                           <h4>Suggestions copywriting</h4>
                            {page.copywriting_issues.map((issue, j) => (
                               <div key={j} className='copywriting-item'>
                                  <p className='copy-text'>« {issue.texte} »</p>
                                  <p className='copy-raison'>{issue.raison}</p>
                                  {issue.suggestion && (
                                     <p className='copy-suggestion'>
-                                       💡 {issue.suggestion}
+                                       {issue.suggestion}
                                     </p>
                                  )}
                               </div>
@@ -664,7 +660,7 @@ function TabCoherence({ data }) {
          {/* Pages OK */}
          {pagesOk.length > 0 && (
             <details className='pages-ok-details'>
-               <summary>✅ {pagesOk.length} page(s) cohérentes</summary>
+               <summary> {pagesOk.length} page(s) cohérentes</summary>
                <ul>
                   {pagesOk.map((page, i) => (
                      <li key={i}>{page.page_url}</li>
@@ -675,7 +671,7 @@ function TabCoherence({ data }) {
 
          {data.length === 0 && (
             <div className='alert alert-success'>
-               ✅ Aucune page de contenu analysée
+               Aucune page de contenu analysée
             </div>
          )}
       </div>
@@ -750,7 +746,7 @@ function TabLiens({ data }) {
          {/* Liens suspects */}
          {suspects.length > 0 && (
             <div className='section'>
-               <h3>🚨 Liens suspects ({suspects.length})</h3>
+               <h3>Liens suspects ({suspects.length})</h3>
                <div className='liens-list'>
                   {suspects.map((lien, i) => (
                      <div key={i} className='lien-item suspect'>
@@ -772,7 +768,7 @@ function TabLiens({ data }) {
                         )}
                         <p className='lien-raison'>{lien.raison}</p>
                         <div className='lien-sources'>
-                           📄 Présent sur :{" "}
+                           Présent sur :{" "}
                            {lien.source_pages.map(getSlug).join(", ")}
                         </div>
                      </div>
@@ -800,7 +796,7 @@ function TabLiens({ data }) {
                            <p className='lien-raison'>{lien.raison}</p>
                         )}
                         <div className='lien-sources'>
-                           📄 Présent sur :{" "}
+                           Présent sur :{" "}
                            {lien.source_pages.map(getSlug).join(", ")}
                         </div>
                      </div>
@@ -810,7 +806,7 @@ function TabLiens({ data }) {
          )}
 
          {allLiens.length === 0 && (
-            <div className='alert alert-success'>✅ Aucun lien analysé</div>
+            <div className='alert alert-success'>Aucun lien analysé</div>
          )}
       </div>
    );
@@ -844,7 +840,7 @@ function TabSeo({ data }) {
          {(doublons.titles_identiques?.length > 0 ||
             doublons.descriptions_identiques?.length > 0) && (
             <div className='section doublons-section'>
-               <h3>🔄 Doublons détectés</h3>
+               <h3> Doublons détectés</h3>
                {doublons.titles_identiques?.map((d, i) => (
                   <div key={`t-${i}`} className='doublon-item'>
                      <p>
@@ -867,7 +863,7 @@ function TabSeo({ data }) {
          {/* Metas à corriger */}
          {metasInvalides.length > 0 && (
             <div className='section'>
-               <h3>⚠️ À corriger ({metasInvalides.length})</h3>
+               <h3>À corriger ({metasInvalides.length})</h3>
                {metasInvalides.map((meta, i) => (
                   <div key={i} className='meta-card warning'>
                      <p className='meta-url'>{meta.url}</p>
@@ -909,13 +905,12 @@ function TabSeo({ data }) {
                      )}
                      {meta.suggestion_title && (
                         <p className='meta-suggestion'>
-                           💡 Title suggéré : {meta.suggestion_title}
+                           Title suggéré : {meta.suggestion_title}
                         </p>
                      )}
                      {meta.suggestion_description && (
                         <p className='meta-suggestion'>
-                           💡 Description suggérée :{" "}
-                           {meta.suggestion_description}
+                           Description suggérée : {meta.suggestion_description}
                         </p>
                      )}
                   </div>
@@ -927,7 +922,7 @@ function TabSeo({ data }) {
          {metasValides.length > 0 && (
             <details className='pages-ok-details'>
                <summary>
-                  ✅ {metasValides.length} page(s) avec metas valides
+                  {metasValides.length} page(s) avec metas valides
                </summary>
                <div className='metas-valides-list'>
                   {metasValides.map((meta, i) => (
@@ -951,4 +946,4 @@ function TabSeo({ data }) {
    );
 }
 
-export default DashboardV2;
+export default Dashboard;

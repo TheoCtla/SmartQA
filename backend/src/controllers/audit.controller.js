@@ -1,9 +1,9 @@
 /**
- * Controller V2 pour l'audit de sites Webflow
+ * Controller pour l'audit de sites Webflow
  * Orchestre le flux métier complet avec le pipeline 6 étapes
  */
-const { scrapeWebsiteV2 } = require("../services/scraper.v2.service");
-const { runFullAnalysisV2 } = require("../services/ai/gemini.v2.service");
+const { scrapeWebsite } = require("../services/scraper.service");
+const { runFullAnalysis } = require("../services/ai/gemini.service");
 
 // Store pour les connexions SSE actives
 const sseClients = new Map();
@@ -40,10 +40,10 @@ function broadcastLog(message, type = 'info') {
 }
 
 /**
- * Handler principal pour l'endpoint POST /audit/v2
- * Orchestre: Validation → Scraping V2 → Analyse IA 6 étapes → Résultats
+ * Handler principal pour l'endpoint POST /audit
+ * Orchestre: Validation → Scraping → Analyse IA 6 étapes → Résultats
  */
-async function handleAuditV2(req, res) {
+async function handleAudit(req, res) {
     try {
         const {
             url,
@@ -72,7 +72,7 @@ async function handleAuditV2(req, res) {
         }
 
         console.log(`\n${"=".repeat(60)}`);
-        console.log(`Démarrage de l'audit V2 pour: ${url}`);
+        console.log(`Démarrage de l'audit pour: ${url}`);
         console.log(`${"=".repeat(60)}`);
         broadcastLog(`Démarrage de l'audit pour: ${url}`, 'start');
 
@@ -93,13 +93,13 @@ async function handleAuditV2(req, res) {
 
         console.log("\nPhase 1: Scraping du site...");
         broadcastLog("Phase 1: Scraping du site en cours...", 'scraping');
-        const scrapedData = await scrapeWebsiteV2(url, max_pages, broadcastLog);
+        const scrapedData = await scrapeWebsite(url, max_pages, broadcastLog);
         console.log(`   ${scrapedData.pages_count} pages scrapées`);
         broadcastLog(`${scrapedData.pages_count} pages scrapées`, 'success');
 
         console.log("\nPhase 2: Analyse IA complète (6 étapes)");
         broadcastLog("Phase 2: Analyse IA (6 étapes)...", 'analysis');
-        const analysisResults = await runFullAnalysisV2(scrapedData, userContext, broadcastLog);
+        const analysisResults = await runFullAnalysis(scrapedData, userContext, broadcastLog);
 
         const result = {
             meta: {
@@ -124,7 +124,7 @@ async function handleAuditV2(req, res) {
         };
 
         console.log(`\n${"=".repeat(60)}`);
-        console.log(`Audit V2 terminé avec succès!`);
+        console.log(`Audit terminé avec succès!`);
         console.log(`   Décision: ${analysisResults.etape6.decision}`);
         console.log(`${"=".repeat(60)}\n`);
         broadcastLog(`Audit terminé! Décision: ${analysisResults.etape6.decision}`, 'complete');
@@ -132,7 +132,7 @@ async function handleAuditV2(req, res) {
         res.json(result);
 
     } catch (error) {
-        console.error("❌ Erreur lors de l'audit V2:", error.message);
+        console.error("Erreur lors de l'audit:", error.message);
         broadcastLog(`Erreur: ${error.message}`, 'error');
         res.status(500).json({
             error: "Une erreur est survenue lors de l'analyse",
@@ -141,4 +141,4 @@ async function handleAuditV2(req, res) {
     }
 }
 
-module.exports = { handleAuditV2, handleAuditLogsSSE };
+module.exports = { handleAudit, handleAuditLogsSSE };

@@ -1,6 +1,6 @@
-/* Dashboard V2 Styles */
+/* Dashboard Styles */
 
-.dashboard-v2 {
+.dashboard {
   display: flex;
   flex-direction: column;
   gap: 1rem;
