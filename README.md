@@ -161,19 +161,20 @@ cd frontend && npm run dev
 SmartQA/
 ├── backend/
 │   ├── src/
-│   │   ├── config/                    # Configuration Gemini
-│   │   │   └── gemini.config.js
-│   │   ├── controllers/               # Logique métier
-│   │   │   └── audit.v2.controller.js # Orchestration audit + SSE
-│   │   ├── routes/                    # Endpoints API
-│   │   │   └── audit.routes.js
+│   │   ├── config/
+│   │   │   └── gemini.config.js       # Configuration Gemini
+│   │   ├── controllers/
+│   │   │   └── audit.controller.js    # Orchestration audit + SSE
+│   │   ├── routes/
+│   │   │   └── audit.routes.js        # Endpoints API
 │   │   ├── services/
-│   │   │   ├── ai/                    # Couche IA
-│   │   │   │   ├── gemini.v2.service.js   # Appels Gemini
-│   │   │   │   └── prompts.v2.js          # Prompts IA
-│   │   │   ├── scraper.v2.service.js      # Scraping site
-│   │   │   └── linkChecker.service.js     # Vérification liens HTTP
-│   │   ├── utils/                     # Utilitaires
+│   │   │   ├── ai/
+│   │   │   │   ├── gemini.service.js  # Appels Gemini
+│   │   │   │   └── prompts.js         # Prompts IA
+│   │   │   ├── scraper.service.js     # Scraping site
+│   │   │   └── linkChecker.service.js # Vérification liens HTTP
+│   │   ├── utils/
+│   │   │   └── helpers.js             # Fonctions utilitaires
 │   │   └── server.js                  # Point d'entrée
 │   ├── .env                           # Variables d'environnement
 │   └── package.json
@@ -182,8 +183,10 @@ SmartQA/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── AuditForm/             # Formulaire de saisie
-│   │   │   ├── DashboardV2/           # Dashboard résultats
+│   │   │   ├── Dashboard/             # Dashboard résultats
 │   │   │   └── Loading/               # Écran de chargement + logs
+│   │   ├── services/
+│   │   │   └── api.js                 # Configuration API centralisée
 │   │   ├── App.jsx                    # Composant racine
 │   │   ├── index.css                  # Styles globaux
 │   │   └── main.jsx                   # Point d'entrée React
@@ -201,11 +204,11 @@ SmartQA/
 
 | Méthode | Endpoint      | Description                    |
 | ------- | ------------- | ------------------------------ |
-| `POST`  | `/audit/v2`   | Lancer un audit complet        |
+| `POST`  | `/audit`      | Lancer un audit complet        |
 | `GET`   | `/audit/logs` | Stream SSE des logs temps réel |
 | `GET`   | `/health`     | Health check                   |
 
-### POST /audit/v2
+### POST /audit
 
 **Requête :**
 
@@ -243,10 +246,14 @@ SmartQA/
   "etape4_liens": { ... },
   "etape5_seo": { ... },
   "etape6_synthese": {
-    "decision": "GO",
-    "corrections_p0": [],
-    "corrections_p1": [...],
-    "corrections_p2": [...]
+    "decision": "go",
+    "priorites": {
+      "P0": [],
+      "P1": [...],
+      "P2": [...]
+    },
+    "resume": "...",
+    "checklist": [...]
   },
   "pages_scrapees": [...]
 }
@@ -347,4 +354,4 @@ npm run lint     # Vérification ESLint
 
 ## Licence
 
-Réalisé par Théo Catala lors d'un projet interne pour [Tarmaac](https://tarmaac.io) - 2025
+Projet réalisé par Théo Catala pour [Tarmaac](https://tarmaac.io) - 2025
