@@ -34,7 +34,7 @@
 
 .form-section-label.recommended {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: rgb(219, 188, 50);
 }
 
 .form-section-label.verification {
@@ -158,9 +158,9 @@
   margin-top: 1rem;
   font-size: 1.1rem;
   padding: 1rem;
-  background: linear-gradient(135deg, var(--color-primary), #8b5cf6);
+  background: linear-gradient(135deg, rgb(219, 188, 50), rgb(255, 220, 100));
   border: none;
-  color: white;
+  color: #0a0a0a;
   border-radius: var(--radius);
   cursor: pointer;
   font-weight: 600;

@@ -30,12 +30,12 @@ function DashboardV2({ results }) {
    ).length;
 
    const tabs = [
-      { id: "synthese", label: "🎯 Synthèse", badge: null },
-      { id: "orthographe", label: "📝 Orthographe", badge: countOrthographe },
-      { id: "legal", label: "⚖️ Pages légales", badge: countLegal },
-      { id: "coherence", label: "🔍 Cohérence", badge: countCoherence },
-      { id: "liens", label: "🔗 Liens", badge: countLiensSuspects },
-      { id: "seo", label: "🏷️ SEO", badge: countMetasInvalides },
+      { id: "synthese", label: "Synthèse", badge: null },
+      { id: "orthographe", label: "Orthographe", badge: countOrthographe },
+      { id: "legal", label: "Pages légales", badge: countLegal },
+      { id: "coherence", label: "Cohérence", badge: countCoherence },
+      { id: "liens", label: "Liens", badge: countLiensSuspects },
+      { id: "seo", label: "SEO", badge: countMetasInvalides },
    ];
 
    return (
@@ -142,7 +142,7 @@ function TabSynthese({ data }) {
          {/* Priorités P0 */}
          {p0Dedup.length > 0 && (
             <div className='priority-section p0'>
-               <h3>🔴 P0 - Bloqueurs ({p0Dedup.length})</h3>
+               <h3>P0 - Bloqueurs ({p0Dedup.length})</h3>
                <ul>
                   {p0Dedup.map((item, i) => (
                      <li key={i}>
@@ -162,7 +162,7 @@ function TabSynthese({ data }) {
          {/* Priorités P1 */}
          {p1Dedup.length > 0 && (
             <div className='priority-section p1'>
-               <h3>🟠 P1 - Importants ({p1Dedup.length})</h3>
+               <h3>P1 - Importants ({p1Dedup.length})</h3>
                <ul>
                   {p1Dedup.map((item, i) => (
                      <li key={i}>
@@ -182,7 +182,7 @@ function TabSynthese({ data }) {
          {/* Priorités P2 */}
          {p2Dedup.length > 0 && (
             <div className='priority-section p2'>
-               <h3>🟢 P2 - Améliorations ({p2Dedup.length})</h3>
+               <h3>P2 - Améliorations ({p2Dedup.length})</h3>
                <ul>
                   {p2Dedup.map((item, i) => (
                      <li key={i}>
