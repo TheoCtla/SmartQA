@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { getApiUrl } from "../../services/api";
 import "./Loading.css";
 
 function Loading({ message = "Analyse en cours..." }) {
    const [logs, setLogs] = useState([]);
 
    useEffect(() => {
-      const eventSource = new EventSource("http://localhost:3001/audit/logs");
+      const eventSource = new EventSource(`${getApiUrl()}/audit/logs`);
 
       eventSource.onmessage = (event) => {
          try {

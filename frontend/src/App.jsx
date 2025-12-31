@@ -1,11 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "./services/api";
 import "./index.css";
 import AuditFormV2 from "./components/AuditForm/AuditFormV2";
 import Loading from "./components/Loading/Loading";
 import DashboardV2 from "./components/DashboardV2/DashboardV2";
-
-const API_URL = "http://localhost:3001";
 
 function App() {
    const [loading, setLoading] = useState(false);
@@ -21,7 +19,7 @@ function App() {
 
       try {
          // Appel à l'API V2
-         const response = await axios.post(`${API_URL}/audit/v2`, data);
+         const response = await api.post("/audit/v2", data);
          setResults(response.data);
          console.log("Résultats V2:", response.data);
       } catch (err) {
@@ -43,9 +41,7 @@ function App() {
    return (
       <div className='app'>
          <header className='app-header'>
-            <h1>
-               SmartQA <span className='version-badge'>V2</span>
-            </h1>
+            <h1>SmartQA</h1>
             <p>Audit intelligent de sites Webflow - Pipeline 6 étapes</p>
          </header>
 
