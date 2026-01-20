@@ -1,9 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getApiUrl } from "../../services/api";
 import "./Loading.css";
 
 function Loading({ message = "Analyse en cours..." }) {
    const [logs, setLogs] = useState([]);
+   const logsContainerRef = useRef(null);
+
+   // Auto-scroll vers le bas quand de nouveaux logs arrivent
+   useEffect(() => {
+      if (logsContainerRef.current) {
+         logsContainerRef.current.scrollTop =
+            logsContainerRef.current.scrollHeight;
+      }
+   }, [logs]);
 
    useEffect(() => {
       const eventSource = new EventSource(`${getApiUrl()}/audit/logs`);
@@ -43,7 +52,7 @@ function Loading({ message = "Analyse en cours..." }) {
             <div className='console-header'>
                <span>📋 Console</span>
             </div>
-            <div className='console-logs'>
+            <div className='console-logs' ref={logsContainerRef}>
                {logs.length === 0 ? (
                   <div className='console-log waiting'>
                      En attente de connexion...
