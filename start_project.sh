@@ -6,7 +6,7 @@
 # Sauvegarder le répertoire racine
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-echo "🚀 Démarrage de SmartQA..."
+echo "Démarrage de SmartQA..."
 
 # Vérifier si le fichier .env existe
 if [ ! -f "$ROOT_DIR/backend/.env" ]; then
@@ -16,7 +16,7 @@ if [ ! -f "$ROOT_DIR/backend/.env" ]; then
 fi
 
 # Lancer le backend en arrière-plan
-echo "📦 Démarrage du backend sur http://localhost:3001..."
+echo "Démarrage du backend sur http://localhost:3001..."
 cd "$ROOT_DIR/backend" && npm start &
 BACKEND_PID=$!
 
@@ -24,12 +24,12 @@ BACKEND_PID=$!
 sleep 2
 
 # Lancer le frontend
-echo "🎨 Démarrage du frontend sur http://localhost:5173..."
+echo "Démarrage du frontend sur http://localhost:5173..."
 cd "$ROOT_DIR/frontend" && npm run dev &
 FRONTEND_PID=$!
 
 echo ""
-echo "✅ SmartQA est prêt !"
+echo "SmartQA est prêt !"
 echo "   Frontend : http://localhost:5173"
 echo "   Backend  : http://localhost:3001"
 echo ""
