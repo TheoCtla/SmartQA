@@ -1,0 +1,102 @@
+.loading-container {
+  text-align: center;
+  padding: 2rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.loading-container .spinner {
+  width: 48px;
+  height: 48px;
+}
+
+.loading-container p {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.loading-hint {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Console de logs */
+.loading-console {
+  background: #0d1117;
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-align: left;
+  border: 1px solid var(--color-border);
+}
+
+.console-header {
+  background: rgba(100, 116, 139, 0.2);
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.console-logs {
+  padding: 0.75rem 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.console-log {
+  color: #8b949e;
+  padding: 0.15rem 0;
+}
+
+.console-log.start {
+  color: #58a6ff;
+}
+
+.console-log.scraping {
+  color: #d29922;
+}
+
+.console-log.analysis {
+  color: #a371f7;
+}
+
+.console-log.page {
+  color: #79c0ff;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.console-log.step {
+  color: #8b949e;
+  padding-left: 1rem;
+}
+
+.console-log.success {
+  color: #3fb950;
+}
+
+.console-log.complete {
+  color: #3fb950;
+  font-weight: 600;
+}
+
+.console-log.error {
+  color: #f85149;
+}
+
+.console-log.waiting {
+  color: #6e7681;
+  font-style: italic;
+}

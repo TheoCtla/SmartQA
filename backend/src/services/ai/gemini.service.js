@@ -17,8 +17,8 @@ const {
 // ÉTAPE 1 - Orthographe + Extraction + Cohérence (par page)
 // ============================================
 
-async function analyzeStep1(pageData, context) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+async function analyzeStep1(pageData, context, broadcastLog = () => { }) {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = getStep1Prompt({
         currentDateISO: getCurrentDateISO(),
@@ -28,14 +28,27 @@ async function analyzeStep1(pageData, context) {
         gerantAttendu: context.gerant_attendu,
         pageUrl: pageData.page_url,
         pageType: pageData.type_page,
-        texteAnalyse: pageData.texte_nettoye?.substring(0, 80000) || "",
+        texteAnalyse: pageData.texte_nettoye?.substring(0, 400000) || "",
         telLinks: pageData.tel_links || []
     });
+
+    // Action 1 : Comptage préventif
+    const countResult = await model.countTokens(prompt);
 
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const parsed = JSON.parse(cleanJsonResponse(response.text()));
+
+        // Action 2 : Récupération des données réelles
+        const usage = response.usageMetadata;
+        if (usage) {
+            const logMsg = `[Tokens] Réel -> Prompt: ${usage.promptTokenCount} | Réponse: ${usage.candidatesTokenCount} | Total: ${usage.totalTokenCount}`;
+            console.log(logMsg);
+
+            // Action 3 : Intégration dans le flux SSE
+            broadcastLog(logMsg, 'token_usage');
+        }
 
         // Nettoyer les faux positifs d'orthographe (erreur === correction)
         if (parsed.orthographe && Array.isArray(parsed.orthographe)) {
@@ -70,8 +83,8 @@ async function analyzeStep1(pageData, context) {
 // ÉTAPE 2 - Conformité pages légales (par page légale)
 // ============================================
 
-async function analyzeStep2(pageData, context) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+async function analyzeStep2(pageData, context, broadcastLog = () => { }) {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = getStep2Prompt({
         currentDateISO: getCurrentDateISO(),
@@ -87,9 +100,23 @@ async function analyzeStep2(pageData, context) {
         texteAnalyse: pageData.texte_nettoye?.substring(0, 50000) || ""
     });
 
+    // Action 1 : Comptage préventif
+    const countResult = await model.countTokens(prompt);
+
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
+
+        // Action 2 : Récupération des données réelles
+        const usage = response.usageMetadata;
+        if (usage) {
+            const logMsg = `[Tokens] Réel -> Prompt: ${usage.promptTokenCount} | Réponse: ${usage.candidatesTokenCount} | Total: ${usage.totalTokenCount}`;
+            console.log(logMsg);
+
+            // Action 3 : Intégration dans le flux SSE
+            broadcastLog(logMsg, 'token_usage');
+        }
+
         return JSON.parse(cleanJsonResponse(response.text()));
     } catch (error) {
         console.error(`Erreur Step2 pour ${pageData.page_url}:`, error.message);
@@ -106,8 +133,8 @@ async function analyzeStep2(pageData, context) {
 // ÉTAPE 3 - Cohérence contenu + Copywriting (par page)
 // ============================================
 
-async function analyzeStep3(pageData, context) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+async function analyzeStep3(pageData, context, broadcastLog = () => { }) {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const { isHomePage, theme } = extractSlugFromUrl(pageData.page_url);
 
@@ -123,9 +150,23 @@ async function analyzeStep3(pageData, context) {
         texteAnalyse: pageData.texte_nettoye?.substring(0, 50000) || ""
     });
 
+    // Action 1 : Comptage préventif
+    const countResult = await model.countTokens(prompt);
+
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
+
+        // Action 2 : Récupération des données réelles
+        const usage = response.usageMetadata;
+        if (usage) {
+            const logMsg = `[Tokens] Réel -> Prompt: ${usage.promptTokenCount} | Réponse: ${usage.candidatesTokenCount} | Total: ${usage.totalTokenCount}`;
+            console.log(logMsg);
+
+            // Action 3 : Intégration dans le flux SSE
+            broadcastLog(logMsg, 'token_usage');
+        }
+
         return JSON.parse(cleanJsonResponse(response.text()));
     } catch (error) {
         console.error(`Erreur Step3 pour ${pageData.page_url}:`, error.message);
@@ -142,8 +183,8 @@ async function analyzeStep3(pageData, context) {
 // ÉTAPE 4 - Liens cliquables + Suspicion (par page)
 // ============================================
 
-async function analyzeStep4(pageData, context) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+async function analyzeStep4(pageData, context, broadcastLog = () => { }) {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     // Limiter le nombre de liens pour éviter de surcharger le prompt
     const liensLimites = (pageData.liens || []).slice(0, 50);
@@ -158,9 +199,23 @@ async function analyzeStep4(pageData, context) {
         liensJSON: JSON.stringify(liensLimites, null, 2)
     });
 
+    // Action 1 : Comptage préventif
+    const countResult = await model.countTokens(prompt);
+
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
+
+        // Action 2 : Récupération des données réelles
+        const usage = response.usageMetadata;
+        if (usage) {
+            const logMsg = `[Tokens] Réel -> Prompt: ${usage.promptTokenCount} | Réponse: ${usage.candidatesTokenCount} | Total: ${usage.totalTokenCount}`;
+            console.log(logMsg);
+
+            // Action 3 : Intégration dans le flux SSE
+            broadcastLog(logMsg, 'token_usage');
+        }
+
         return JSON.parse(cleanJsonResponse(response.text()));
     } catch (error) {
         console.error(`Erreur Step4 pour ${pageData.page_url}:`, error.message);
@@ -176,8 +231,8 @@ async function analyzeStep4(pageData, context) {
 // ÉTAPE 5 - Meta SEO (site-wide, un seul appel)
 // ============================================
 
-async function analyzeStep5(allMetas, context) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+async function analyzeStep5(allMetas, context, broadcastLog = () => { }) {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = getStep5Prompt({
         entrepriseNom: context.entreprise,
@@ -185,9 +240,23 @@ async function analyzeStep5(allMetas, context) {
         metasJSON: JSON.stringify(allMetas, null, 2)
     });
 
+    // Action 1 : Comptage préventif
+    const countResult = await model.countTokens(prompt);
+
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
+
+        // Action 2 : Récupération des données réelles
+        const usage = response.usageMetadata;
+        if (usage) {
+            const logMsg = `[Tokens] Réel -> Prompt: ${usage.promptTokenCount} | Réponse: ${usage.candidatesTokenCount} | Total: ${usage.totalTokenCount}`;
+            console.log(logMsg);
+
+            // Action 3 : Intégration dans le flux SSE
+            broadcastLog(logMsg, 'token_usage');
+        }
+
         return JSON.parse(cleanJsonResponse(response.text()));
     } catch (error) {
         console.error("Erreur Step5:", error.message);
@@ -202,8 +271,8 @@ async function analyzeStep5(allMetas, context) {
 // ÉTAPE 6 - Synthèse Go/No-Go (site-wide, un seul appel)
 // ============================================
 
-async function analyzeStep6(allResults, context) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+async function analyzeStep6(allResults, context, broadcastLog = () => { }) {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = getStep6Prompt({
         entrepriseNom: context.entreprise,
@@ -217,9 +286,23 @@ async function analyzeStep6(allResults, context) {
         resultEtape5JSON: JSON.stringify(allResults.etape5, null, 2)
     });
 
+    // Action 1 : Comptage préventif
+    const countResult = await model.countTokens(prompt);
+
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
+
+        // Action 2 : Récupération des données réelles
+        const usage = response.usageMetadata;
+        if (usage) {
+            const logMsg = `[Tokens] Réel -> Prompt: ${usage.promptTokenCount} | Réponse: ${usage.candidatesTokenCount} | Total: ${usage.totalTokenCount}`;
+            console.log(logMsg);
+
+            // Action 3 : Intégration dans le flux SSE
+            broadcastLog(logMsg, 'token_usage');
+        }
+
         return JSON.parse(cleanJsonResponse(response.text()));
     } catch (error) {
         console.error("Erreur Step6:", error.message);
@@ -263,7 +346,7 @@ async function runFullAnalysis(scrapedData, userContext, broadcastLog = () => { 
         // Étape 1 : Orthographe + Extraction (toutes les pages)
         console.log("   → Étape 1: Orthographe + Extraction...");
         broadcastLog(`   → Étape 1: Orthographe + Extraction...`, 'step');
-        const step1Result = await analyzeStep1(page, userContext);
+        const step1Result = await analyzeStep1(page, userContext, broadcastLog);
         results.etape1.push(step1Result);
         // await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -271,7 +354,7 @@ async function runFullAnalysis(scrapedData, userContext, broadcastLog = () => { 
         if (isLegalPage(page.type_page)) {
             console.log("   → Étape 2: Conformité légale...");
             broadcastLog(`   → Étape 2: Conformité légale...`, 'step');
-            const step2Result = await analyzeStep2(page, userContext);
+            const step2Result = await analyzeStep2(page, userContext, broadcastLog);
             results.etape2.push(step2Result);
             // await new Promise(resolve => setTimeout(resolve, 1000));
         }
@@ -280,7 +363,7 @@ async function runFullAnalysis(scrapedData, userContext, broadcastLog = () => { 
         if (!isLegalPage(page.type_page)) {
             console.log("   → Étape 3: Cohérence + Copywriting...");
             broadcastLog(`   → Étape 3: Cohérence + Copywriting...`, 'step');
-            const step3Result = await analyzeStep3(page, userContext);
+            const step3Result = await analyzeStep3(page, userContext, broadcastLog);
             results.etape3.push(step3Result);
             // await new Promise(resolve => setTimeout(resolve, 1000));
         }
@@ -288,7 +371,7 @@ async function runFullAnalysis(scrapedData, userContext, broadcastLog = () => { 
         // Étape 4 : Liens (toutes les pages)
         console.log("   → Étape 4: Analyse des liens...");
         broadcastLog(`   → Étape 4: Analyse des liens...`, 'step');
-        const step4Result = await analyzeStep4(page, userContext);
+        const step4Result = await analyzeStep4(page, userContext, broadcastLog);
         results.etape4.push(step4Result);
 
         // Pause entre les pages pour éviter le rate limiting
@@ -300,13 +383,13 @@ async function runFullAnalysis(scrapedData, userContext, broadcastLog = () => { 
     console.log("\n   → Étape 5: Analyse Meta SEO (site-wide)...");
     broadcastLog(`   → Étape 5: Analyse Meta SEO (site-wide)...`, 'step');
     // await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 5
-    results.etape5 = await analyzeStep5(scrapedData.all_metas, userContext);
+    results.etape5 = await analyzeStep5(scrapedData.all_metas, userContext, broadcastLog);
 
     // ===== ÉTAPE 6 : Synthèse Go/No-Go =====
     console.log("\n   → Étape 6: Synthèse Go/No-Go...");
     broadcastLog(`   → Étape 6: Synthèse finale...`, 'step');
     // await new Promise(resolve => setTimeout(resolve, 1000)); // Délai avant étape 6
-    results.etape6 = await analyzeStep6(results, userContext);
+    results.etape6 = await analyzeStep6(results, userContext, broadcastLog);
 
     console.log("\nAnalyse terminée!");
     console.log(`   Décision: ${results.etape6.decision}`);

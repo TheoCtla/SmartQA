@@ -410,7 +410,7 @@ RÉPONDS EN JSON :
     "P2": []
   },
   "resume": "",
-  "checklist": []
+  "checklist": ["Verifier le point A", "Verifier le point B"]
 }`;
 }
 
